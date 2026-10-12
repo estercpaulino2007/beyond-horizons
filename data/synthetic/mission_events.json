@@ -1,0 +1,88 @@
+{
+  "mission_id": "ares-180",
+  "synthetic_data_notice": "The crew profiles, conditions and events in this mission are synthetic and were created for educational purposes and exploratory simulation. They do not represent real astronauts and are not medical advice.",
+  "events": [
+    {
+      "id": "evt_radiation_storm",
+      "mission_id": "ares-180",
+      "day_start": 143,
+      "day_end": 143,
+      "type": "radiation_storm",
+      "severity": "high",
+      "description": "Solar particle event causes acute radiation exposure",
+      "effects": {
+        "radiation_dose_multiplier": 3.5,
+        "cognitive_impact": 0.15,
+        "inflammatory_trigger": 0.2
+      },
+      "synthetic": true,
+      "decision_point": null
+    },
+    {
+      "id": "evt_exercise_failure",
+      "mission_id": "ares-180",
+      "day_start": 143,
+      "day_end": 154,
+      "type": "equipment_failure",
+      "severity": "medium",
+      "description": "Exercise module unavailable due to technical failure",
+      "effects": {
+        "muscle_recovery_reduction": 0.25,
+        "bone_risk_increase": 0.15,
+        "exercise_benefit_removed": 1.0
+      },
+      "synthetic": true,
+      "decision_point": null
+    },
+    {
+      "id": "evt_comm_delay",
+      "mission_id": "ares-180",
+      "day_start": 1,
+      "day_end": 180,
+      "type": "communication_delay",
+      "severity": "medium",
+      "description": "Communication delay with Earth: 22 minutes one-way",
+      "effects": {
+        "operational_stress": 0.1,
+        "decision_autonomy_required": 1.0
+      },
+      "synthetic": true,
+      "decision_point": null
+    },
+    {
+      "id": "evt_eva_critical",
+      "mission_id": "ares-180",
+      "day_start": 145,
+      "day_end": 145,
+      "type": "eva",
+      "severity": "high",
+      "description": "Critical EVA scheduled for day 145",
+      "effects": {
+        "eva_load": 0.4,
+        "radiation_exposure_eva": 0.2,
+        "physical_fatigue": 0.3,
+        "cognitive_load": 0.35
+      },
+      "synthetic": true,
+      "decision_point": {
+        "alternatives": [
+          {
+            "id": "A",
+            "name": "Maintain EVA",
+            "description": "Proceed with EVA as scheduled with original crew member"
+          },
+          {
+            "id": "B",
+            "name": "Delay EVA",
+            "description": "Postpone EVA by 10 days to allow recovery"
+          },
+          {
+            "id": "C",
+            "name": "Reassign + Recovery",
+            "description": "Reassign EVA to different crew member and apply sleep recovery protocol"
+          }
+        ]
+      }
+    }
+  ]
+}

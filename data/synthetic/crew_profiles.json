@@ -1,0 +1,102 @@
+{
+  "mission_id": "ares-180",
+  "synthetic_data_notice": "The crew profiles, conditions and events in this mission are synthetic and were created for educational purposes and exploratory simulation. They do not represent real astronauts and are not medical advice.",
+  "crew_profiles": [
+    {
+      "id": "atlas",
+      "display_name": "Atlas",
+      "role": "Mission Specialist",
+      "synthetic": true,
+      "baseline": {
+        "radiation_sensitivity": 0.45,
+        "bone_loss_susceptibility": 0.35,
+        "sleep_resilience": 0.3,
+        "muscle_recovery": 0.75,
+        "cognitive_resilience": 0.58,
+        "inflammatory_baseline": 0.4
+      },
+      "characteristics": [
+        "High physical capacity",
+        "Unstable sleep patterns",
+        "Good muscle recovery"
+      ],
+      "primary_vulnerability": "Cognitive fatigue under sleep debt",
+      "limitations": [
+        "Synthetic persona for demonstration only",
+        "Not calibrated to an individual human"
+      ]
+    },
+    {
+      "id": "nova",
+      "display_name": "Nova",
+      "role": "Flight Engineer",
+      "synthetic": true,
+      "baseline": {
+        "radiation_sensitivity": 0.38,
+        "bone_loss_susceptibility": 0.62,
+        "sleep_resilience": 0.65,
+        "muscle_recovery": 0.48,
+        "cognitive_resilience": 0.72,
+        "inflammatory_baseline": 0.35
+      },
+      "characteristics": [
+        "Good cognitive recovery",
+        "Higher bone loss risk",
+        "Moderate sleep resilience"
+      ],
+      "primary_vulnerability": "Musculoskeletal deconditioning",
+      "limitations": [
+        "Synthetic persona for demonstration only",
+        "Not calibrated to an individual human"
+      ]
+    },
+    {
+      "id": "lyra",
+      "display_name": "Lyra",
+      "role": "Science Officer",
+      "synthetic": true,
+      "baseline": {
+        "radiation_sensitivity": 0.68,
+        "bone_loss_susceptibility": 0.42,
+        "sleep_resilience": 0.55,
+        "muscle_recovery": 0.6,
+        "cognitive_resilience": 0.65,
+        "inflammatory_baseline": 0.5
+      },
+      "characteristics": [
+        "Higher sensitivity to cumulative exposure",
+        "Moderate recovery across systems",
+        "Elevated inflammatory baseline"
+      ],
+      "primary_vulnerability": "Radiation-related cumulative risk",
+      "limitations": [
+        "Synthetic persona for demonstration only",
+        "Not calibrated to an individual human"
+      ]
+    },
+    {
+      "id": "orion",
+      "display_name": "Orion",
+      "role": "Commander",
+      "synthetic": true,
+      "baseline": {
+        "radiation_sensitivity": 0.4,
+        "bone_loss_susceptibility": 0.38,
+        "sleep_resilience": 0.48,
+        "muscle_recovery": 0.7,
+        "cognitive_resilience": 0.62,
+        "inflammatory_baseline": 0.38
+      },
+      "characteristics": [
+        "Good physical resilience",
+        "High operational workload",
+        "Moderate sleep vulnerability"
+      ],
+      "primary_vulnerability": "Operational error under high workload",
+      "limitations": [
+        "Synthetic persona for demonstration only",
+        "Not calibrated to an individual human"
+      ]
+    }
+  ]
+}

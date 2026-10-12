@@ -1,0 +1,10 @@
+{
+  "mission_id": "ares-180",
+  "mission_name": "Ares-180 Mars Transit Simulation",
+  "destination": "mars_transit",
+  "duration_days": 180,
+  "crew_size": 4,
+  "gravity_g": 0.0,
+  "communication_delay_minutes": 22.0,
+  "synthetic": true
+}

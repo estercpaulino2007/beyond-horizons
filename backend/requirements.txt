@@ -1,0 +1,10 @@
+# Runtime dependencies (versions pinned to what was installed and tested on 2026-09-19)
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+pydantic==2.13.5
+pydantic-settings==2.15.0
+numpy==2.5.3
+pandas==3.0.6
+scipy==1.18.1
+networkx==3.6.1
+httpx==0.28.1

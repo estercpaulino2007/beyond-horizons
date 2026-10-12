@@ -1,0 +1,3 @@
+Saved from OSD-720 (GLDS-699) study page, pasted by the user on 2026-09-22.
+Source: https://osdr.nasa.gov/bio/repo/data/studies/OSD-720
+See docs/data-sources.md for the extracted, verified fields.
