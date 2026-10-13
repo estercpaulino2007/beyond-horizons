@@ -39,7 +39,7 @@ def test_ask_rejects_an_empty_message():
 def test_ask_succeeds_when_configured_and_the_provider_responds(monkeypatch):
     import app.api.assistant as assistant_api
 
-    async def fake_ask(message, history=None):
+    async def fake_ask(message, history=None, vitals_summary=None):
         assert message == "What is the crew's radiation risk?"
         return "Based on the evidence graph, radiation exposure has a data-supported link to DNA damage response."
 
@@ -58,7 +58,7 @@ def test_ask_returns_502_when_the_provider_errors(monkeypatch):
     import app.api.assistant as assistant_api
     from app.services.assistant import AssistantUpstreamError
 
-    async def failing_ask(message, history=None):
+    async def failing_ask(message, history=None, vitals_summary=None):
         raise AssistantUpstreamError("Assistant provider returned 500: boom")
 
     monkeypatch.setattr(assistant_api, "is_configured", lambda: True)

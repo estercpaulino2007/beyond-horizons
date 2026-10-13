@@ -12,8 +12,17 @@
  * All of this stays synthetic/exploratory data -- customizing a slider does
  * not turn a value into a measured quantity; see the SyntheticDataBanner
  * shown on both /simulation and here.
+ *
+ * "Simulate as yourself" (below) lets a crew slot start from the person's
+ * own latest My Vitals entry instead of one of the four fixed archetypes --
+ * see lib/vitalsToTraits.ts for exactly how, and which traits honestly have
+ * no vitals-derived proxy. It only ever seeds; every slider stays manually
+ * adjustable afterward, same as any other crew member.
  */
+import Link from "next/link";
 import { useId, useState } from "react";
+import { loadVitalsHistory } from "@/lib/vitalsStore";
+import { VITALS_NEUTRAL_TRAITS, vitalsToCrewBaseline } from "@/lib/vitalsToTraits";
 import type {
   CountermeasurePlan,
   CrewBaselineOverride,
@@ -102,8 +111,27 @@ export default function SimulationCustomizer({
     new Set(mission.events.map((e) => e.id)),
   );
   const [countermeasureIds, setCountermeasureIds] = useState<Set<string>>(new Set());
+  const [youCrewId, setYouCrewId] = useState<string | null>(null);
+  const [selfSeedCrewId, setSelfSeedCrewId] = useState(mission.crew_profiles[0]?.id ?? "");
+  const hasVitals = loadVitalsHistory().length > 0;
 
   const isSurface = SURFACE_DESTINATIONS.includes(destination);
+
+  function simulateAsYourself() {
+    const history = loadVitalsHistory();
+    const latest = history[history.length - 1];
+    if (!latest || !selfSeedCrewId) return;
+    setTraits((prev) => ({ ...prev, [selfSeedCrewId]: vitalsToCrewBaseline(latest.entry) }));
+    setYouCrewId(selfSeedCrewId);
+  }
+
+  function clearSelf(crewId: string) {
+    const original = mission.crew_profiles.find((c) => c.id === crewId);
+    if (original) {
+      setTraits((prev) => ({ ...prev, [crewId]: { ...original.baseline } }));
+    }
+    setYouCrewId((prev) => (prev === crewId ? null : prev));
+  }
 
   function resetToDefaults() {
     setTraits(initialTraits(mission.crew_profiles));
@@ -114,6 +142,7 @@ export default function SimulationCustomizer({
     setGravity(mission.mission.gravity_g);
     setActiveEventIds(new Set(mission.events.map((e) => e.id)));
     setCountermeasureIds(new Set());
+    setYouCrewId(null);
   }
 
   function toggleEvent(id: string) {
@@ -175,21 +204,75 @@ export default function SimulationCustomizer({
         <div className="mt-6 space-y-8">
           <div>
             <h3 className="mb-3 text-sm font-semibold">Crew</h3>
+
+            <div className="mb-4 rounded-lg border p-3 text-xs" style={{ borderColor: "var(--border)", background: "var(--background-soft)" }}>
+              <p className="mb-2 font-medium">Simulate as yourself</p>
+              {hasVitals ? (
+                <>
+                  <p className="mb-2 text-[var(--faint)]">
+                    Seed one crew slot&apos;s sleep, muscle-recovery, cognitive and inflammatory baseline from your
+                    latest My Vitals entry — radiation sensitivity and bone-loss susceptibility have no honest vitals
+                    proxy, so they stay at a neutral 0.50. Every slider stays adjustable afterward.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={selfSeedCrewId}
+                      onChange={(e) => setSelfSeedCrewId(e.target.value)}
+                      className="hz-input !w-auto"
+                    >
+                      {mission.crew_profiles.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {names[c.id] ?? c.display_name}
+                        </option>
+                      ))}
+                    </select>
+                    <button type="button" onClick={simulateAsYourself} className="btn-primary !px-3 !py-1.5 text-xs">
+                      Apply my vitals
+                    </button>
+                    {youCrewId && (
+                      <button type="button" onClick={() => clearSelf(youCrewId)} className="btn-ghost !px-2 !py-1.5 text-xs">
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-[var(--faint)]">
+                  Record a{" "}
+                  <Link href="/vitals" className="underline">
+                    My Vitals
+                  </Link>{" "}
+                  entry first to seed a crew slot from your own numbers instead of a fixed archetype.
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {mission.crew_profiles.map((crew) => (
                 <div key={crew.id} className="panel p-4">
-                  <input
-                    value={names[crew.id] ?? crew.display_name}
-                    onChange={(e) => setNames((prev) => ({ ...prev, [crew.id]: e.target.value }))}
-                    className="hz-input mb-1 w-full font-semibold"
-                    maxLength={80}
-                  />
+                  <div className="mb-1 flex items-center gap-2">
+                    <input
+                      value={names[crew.id] ?? crew.display_name}
+                      onChange={(e) => setNames((prev) => ({ ...prev, [crew.id]: e.target.value }))}
+                      className="hz-input w-full font-semibold"
+                      maxLength={80}
+                    />
+                    {youCrewId === crew.id && (
+                      <span className="mono-tag shrink-0" style={{ color: "var(--accent)" }}>
+                        YOU
+                      </span>
+                    )}
+                  </div>
                   <p className="mb-3 text-xs text-[var(--faint)]">{crew.role}</p>
                   <div className="space-y-2">
                     {TRAIT_FIELDS.map((field) => (
                       <Slider
                         key={field.key}
-                        label={field.label}
+                        label={
+                          youCrewId === crew.id && VITALS_NEUTRAL_TRAITS.includes(field.key)
+                            ? `${field.label} (no vitals proxy)`
+                            : field.label
+                        }
                         value={traits[crew.id]?.[field.key] ?? crew.baseline[field.key]}
                         onChange={(value) =>
                           setTraits((prev) => ({

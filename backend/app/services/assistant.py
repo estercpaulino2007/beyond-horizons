@@ -44,8 +44,21 @@ def is_configured() -> bool:
     return get_settings().assistant_configured
 
 
-async def ask(message: str, history: list[AssistantTurn] | None = None) -> str:
+async def ask(
+    message: str,
+    history: list[AssistantTurn] | None = None,
+    vitals_summary: str | None = None,
+) -> str:
     """Answers one question, grounded in the app's current data.
+
+    `vitals_summary` is an optional, already-formatted plain-text summary of
+    the person's own latest My Vitals entry (see frontend/lib/vitalsStore.ts
+    and components/AssistantWidget.tsx, which builds this string client-side
+    from whatever is in that browser's localStorage -- nothing is persisted
+    server-side). It is appended to the grounding context verbatim, under its
+    own clearly-labelled section, so the assistant can answer questions about
+    the person themselves without ever being told their vitals are anything
+    but a self-reported snapshot from this one session.
 
     Raises AssistantNotConfiguredError if no API key is set, or
     AssistantUpstreamError if the provider call fails. Callers (app/api/
@@ -57,6 +70,11 @@ async def ask(message: str, history: list[AssistantTurn] | None = None) -> str:
         raise AssistantNotConfiguredError
 
     system_prompt = ASSISTANT_SYSTEM_PROMPT + build_assistant_context()
+    if vitals_summary:
+        # Truncated defensively -- this travels from the client, so it is
+        # untrusted length-wise even though it's just numbers/labels this
+        # app itself produced (see AssistantWidget.tsx).
+        system_prompt += "\n\n## Person's own vitals (self-reported this session, not clinical data)\n" + vitals_summary[:2000]
 
     turns = (history or [])[-MAX_HISTORY_TURNS:]
     messages = [{"role": t.role, "content": t.content} for t in turns]

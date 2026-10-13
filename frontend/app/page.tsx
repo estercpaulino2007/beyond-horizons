@@ -61,21 +61,23 @@ export default function Home() {
         />
         <ScenarioCaption text="Ares-180 habitat, days 1–180 · synthetic illustration, not a real mission photo" />
         <div className="hero-content max-w-2xl">
-          <p className="eyebrow">Explainable crew digital twin · Ares-180</p>
+          <p className="eyebrow">Health monitoring software for astronauts</p>
           <h1 className="display-title mt-2 text-4xl sm:text-5xl">Beyond Horizons</h1>
           <p className="mt-4 max-w-xl text-base text-[var(--muted)] sm:text-lg">
-            Beyond data. Toward safer human exploration. A 180-day synthetic Mars-transit mission,
-            simulated day by day, with every conclusion showing its evidence, uncertainty and limits.
+            Track your own cardiac, respiratory, sleep, activity and hydration vitals, then see how
+            spaceflight stressors act on them in an explainable, evidence-backed simulation — with
+            every conclusion showing its evidence, uncertainty and limits. Ares-180 below is one
+            illustrative 180-day Mars-transit scenario, not the point of the app.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/simulation" className="btn-primary">
-              Run the simulation →
+            <Link href="/vitals" className="btn-primary">
+              Record my vitals →
+            </Link>
+            <Link href="/simulation" className="btn-ghost">
+              Run a health simulation
             </Link>
             <Link href="/debate" className="btn-ghost">
               See the Debate Chamber
-            </Link>
-            <Link href="/counterfactual" className="btn-ghost">
-              EVA decision
             </Link>
           </div>
         </div>
@@ -92,6 +94,19 @@ export default function Home() {
 
           <RealEvidenceStrip />
 
+          <div className="enter flex items-baseline justify-between gap-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--faint)]">
+              Example scenario
+            </h2>
+            <p className="text-xs text-[var(--faint)]">
+              One illustrative simulation — not the only way to use this app. Prefer your own numbers?{" "}
+              <Link href="/vitals" className="underline">
+                Go to My Vitals
+              </Link>
+              .
+            </p>
+          </div>
+
           <section className="panel enter enter-delay-1 p-6">
             <h2 className="text-lg font-semibold">{mission.mission_name}</h2>
             <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -106,7 +121,16 @@ export default function Home() {
           </section>
 
           <section className="enter enter-delay-2">
-            <h2 className="mb-3 text-lg font-semibold">Crew</h2>
+            <div className="mb-3 flex items-baseline justify-between gap-3">
+              <h2 className="text-lg font-semibold">Crew</h2>
+              <p className="text-xs text-[var(--faint)]">
+                Four fixed synthetic archetypes by default — on{" "}
+                <Link href="/simulation" className="underline">
+                  Simulation
+                </Link>
+                , customize any slot, including seeding one from your own vitals.
+              </p>
+            </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {crewProfiles.map((crew) => (
                 <div key={crew.id} className="panel panel-interactive flex flex-col gap-2 p-5">

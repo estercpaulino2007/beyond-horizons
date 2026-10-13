@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ApiError, askAssistant, getAssistantStatus } from "@/lib/api";
+import { loadVitalsHistory } from "@/lib/vitalsStore";
+import { buildVitalsSummaryText } from "@/lib/vitalsToTraits";
 import type { AssistantTurn } from "@/types/api";
 
 type Status = "checking" | "configured" | "unconfigured" | "unreachable";
@@ -59,7 +61,12 @@ export default function AssistantWidget() {
     setMessages(nextHistory);
     setSending(true);
     try {
-      const result = await askAssistant(message, messages);
+      // Best-effort, this-device-only -- see lib/vitalsStore.ts. Never sent
+      // unless the person has actually recorded a My Vitals entry here.
+      const history = loadVitalsHistory();
+      const latest = history[history.length - 1];
+      const vitalsSummary = latest ? buildVitalsSummaryText(latest) : undefined;
+      const result = await askAssistant(message, messages, vitalsSummary);
       setMessages([...nextHistory, { role: "assistant", content: result.answer }]);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Unknown error.");
@@ -112,9 +119,9 @@ export default function AssistantWidget() {
               <div ref={scrollRef} className="assistant-body assistant-scroll">
                 {messages.length === 0 && (
                   <p className="text-xs" style={{ color: "var(--faint)" }}>
-                    Ask about the Ares-180 crew, the simulation, or the evidence behind a risk. Answers are grounded only
-                    in this app&apos;s own synthetic scenario and evidence graph -- not real astronaut data or medical
-                    advice.
+                    Ask about astronaut health monitoring, your own recorded vitals, or the Ares-180 simulation and
+                    evidence behind a risk. Answers are grounded only in this app&apos;s own data -- not real astronaut
+                    data or medical advice.
                   </p>
                 )}
                 {messages.map((m, i) => (
@@ -142,7 +149,7 @@ export default function AssistantWidget() {
                   type="text"
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Ask a question about this mission…"
+                  placeholder="Ask about your vitals or the simulation…"
                   className="assistant-input"
                   disabled={sending}
                 />

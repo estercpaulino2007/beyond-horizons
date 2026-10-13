@@ -113,14 +113,18 @@ export function getAssistantStatus(): Promise<AssistantStatusResponse> {
 // Separate from request(): on a 503/502 the backend sends a human-readable
 // {"detail": "..."} explaining *why* (e.g. "not configured"), which the chat
 // widget shows verbatim rather than a generic "503 Service Unavailable".
-export async function askAssistant(message: string, history: AssistantTurn[]): Promise<AssistantAskResponse> {
+export async function askAssistant(
+  message: string,
+  history: AssistantTurn[],
+  vitalsSummary?: string | null,
+): Promise<AssistantAskResponse> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}/api/v1/assistant/ask`, {
       method: "POST",
       cache: "no-store",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, history }),
+      body: JSON.stringify({ message, history, vitals_summary: vitalsSummary || undefined }),
     });
   } catch {
     throw new ApiError(`Could not reach the Beyond Horizons API at ${API_BASE_URL}. Is the backend running (./run.sh)?`, 0);

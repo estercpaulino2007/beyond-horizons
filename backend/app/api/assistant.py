@@ -44,7 +44,7 @@ async def post_ask(payload: AssistantAskRequest) -> AssistantAskResponse:
     if not is_configured():
         raise HTTPException(status_code=503, detail=ASSISTANT_NOT_CONFIGURED_NOTICE)
     try:
-        answer = await ask(payload.message, payload.history)
+        answer = await ask(payload.message, payload.history, payload.vitals_summary)
     except AssistantNotConfiguredError as exc:
         raise HTTPException(status_code=503, detail=ASSISTANT_NOT_CONFIGURED_NOTICE) from exc
     except AssistantUpstreamError as exc:

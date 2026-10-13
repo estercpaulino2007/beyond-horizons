@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 
 const LINKS = [
-  { href: "/", label: "Mission" },
+  { href: "/", label: "Health Monitor" },
   { href: "/vitals", label: "My Vitals" },
   { href: "/simulation", label: "Simulation" },
   { href: "/counterfactual", label: "EVA Decision" },
@@ -23,7 +23,7 @@ export default function Nav() {
       <div className="hidden border-b border-[var(--border)] bg-[var(--background-soft)] sm:block">
         <div className="mono-tag mx-auto flex max-w-6xl items-center justify-between px-6 py-1">
           <span>
-            MISSION <span className="text-[var(--accent-strong)]">ARES-180</span> · MARS TRANSIT · CREW 4
+            ASTRONAUT <span className="text-[var(--accent-strong)]">HEALTH MONITORING</span> · EXAMPLE SCENARIO: ARES-180
           </span>
           <span className="flex items-center gap-1.5">
             <span

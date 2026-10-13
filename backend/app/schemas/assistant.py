@@ -21,6 +21,16 @@ class AssistantAskRequest(DomainModel):
         default_factory=list,
         description="Prior turns of this conversation, oldest first. Only the most recent few are sent upstream.",
     )
+    vitals_summary: str | None = Field(
+        default=None,
+        max_length=2000,
+        description=(
+            "Optional plain-text summary of the person's own latest My Vitals entry, built "
+            "client-side from that browser's localStorage (see frontend/components/"
+            "AssistantWidget.tsx). Never persisted server-side; used only to ground this one "
+            "answer. Omitted when the person hasn't recorded any vitals yet."
+        ),
+    )
 
 
 class AssistantAskResponse(DomainModel):
