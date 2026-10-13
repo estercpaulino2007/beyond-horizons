@@ -5,7 +5,7 @@ import { ApiError, evaluateVitals } from "@/lib/api";
 import { ErrorBanner } from "@/components/Banner";
 import VitalsForm from "@/components/VitalsForm";
 import VitalsCategoryGrid from "@/components/VitalsCategoryGrid";
-import VitalsBodyScan from "@/components/VitalsBodyScan";
+import VitalsHoloModel from "@/components/VitalsHoloModel";
 import VitalsECGStrip from "@/components/VitalsECGStrip";
 import VitalsTrendFlagsPanel from "@/components/VitalsTrendFlagsPanel";
 import VitalsEmergencyPanel from "@/components/VitalsEmergencyPanel";
@@ -114,7 +114,7 @@ export default function VitalsPage() {
               </span>
             </div>
           </div>
-          <VitalsBodyScan statusByCategory={statusByCategory} />
+          <VitalsHoloModel statusByCategory={statusByCategory} />
         </div>
       </div>
 

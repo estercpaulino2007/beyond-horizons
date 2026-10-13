@@ -860,10 +860,61 @@ body::before {
   }
 }
 
+.vitals-heartbeat {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: vitals-heartbeat 1.6s ease-in-out infinite;
+}
+
+@keyframes vitals-heartbeat {
+  0%,
+  28%,
+  100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.14);
+  }
+}
+
+.vitals-wave-ring {
+  animation: vitals-wave-ring 2.8s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes vitals-wave-ring {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.vitals-callout-line {
+  stroke-dasharray: 3 3;
+  animation: vitals-callout-dash 1.4s linear infinite;
+}
+
+@keyframes vitals-callout-dash {
+  0% {
+    stroke-dashoffset: 6;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .vitals-pulse,
   .vitals-scan-sweep,
-  .vitals-ecg-line {
+  .vitals-ecg-line,
+  .vitals-heartbeat,
+  .vitals-wave-ring,
+  .vitals-callout-line {
     animation: none;
   }
 }
