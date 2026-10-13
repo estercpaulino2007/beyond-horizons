@@ -24,6 +24,16 @@ from app.services.assistant_context import build_assistant_context
 
 MAX_HISTORY_TURNS = 8
 MAX_MESSAGE_LENGTH = 2000
+# A stored history turn is NOT the same thing as a new question: a turn can
+# be one of THIS assistant's own prior replies, requested with max_tokens=800
+# below. 800 tokens of Portuguese/English prose can easily run past 2000
+# characters (roughly 4-5 chars/token), so reusing MAX_MESSAGE_LENGTH here
+# made the chat start failing with a raw "String should have at most 2000
+# characters" 422 the moment one reply got long and the frontend echoed it
+# back as history on the next question -- not a sign the person typed
+# anything too long themselves. Generous margin over the realistic worst
+# case for an 800-token reply.
+MAX_HISTORY_TURN_LENGTH = 6000
 REQUEST_TIMEOUT_SECONDS = 30.0
 
 
@@ -37,7 +47,7 @@ class AssistantUpstreamError(RuntimeError):
 
 class AssistantTurn(BaseModel):
     role: str = Field(pattern="^(user|assistant)$")
-    content: str = Field(min_length=1, max_length=MAX_MESSAGE_LENGTH)
+    content: str = Field(min_length=1, max_length=MAX_HISTORY_TURN_LENGTH)
 
 
 def is_configured() -> bool:
