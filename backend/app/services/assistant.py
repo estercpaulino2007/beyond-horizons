@@ -1,12 +1,16 @@
-"""In-app assistant: a thin, grounded wrapper around the Anthropic Messages API.
+"""In-app assistant: a thin, grounded wrapper around an LLM provider's chat
+API -- either the Anthropic Messages API or an OpenAI-compatible
+chat-completions endpoint (ASSISTANT_API_FORMAT, app/core/config.py).
 
-Bring-your-own-key by design (see app/core/config.py): this project has no
-budget to spend on an operator's behalf, so `ask()` raises
-AssistantNotConfiguredError whenever ASSISTANT_API_KEY isn't set, rather than
-silently failing or fabricating an answer. When it *is* configured, every
-call is grounded in app/services/assistant_context.py -- the model is
-instructed to answer only from that context and to keep this project's
-synthetic/evidence-level labelling honest (app/core/notices.py).
+Bring-your-own-key by design: this project has no budget to spend on an
+operator's behalf, so `ask()` raises AssistantNotConfiguredError whenever
+ASSISTANT_API_KEY isn't set, rather than silently failing or fabricating an
+answer. The OpenAI-compatible format exists specifically so an operator can
+point this at a free-tier provider (e.g. Groq, https://api.groq.com/openai)
+instead of a paid Anthropic key. When configured, every call is grounded in
+app/services/assistant_context.py -- the model is instructed to answer only
+from that context and to keep this project's synthetic/evidence-level
+labelling honest (app/core/notices.py).
 """
 
 from __future__ import annotations
@@ -58,22 +62,36 @@ async def ask(message: str, history: list[AssistantTurn] | None = None) -> str:
     messages = [{"role": t.role, "content": t.content} for t in turns]
     messages.append({"role": "user", "content": message[:MAX_MESSAGE_LENGTH]})
 
+    is_openai_format = settings.assistant_api_format.strip().lower() == "openai"
+
+    if is_openai_format:
+        url = f"{settings.assistant_api_base_url}/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {settings.assistant_api_key or ''}",
+            "content-type": "application/json",
+        }
+        payload = {
+            "model": settings.assistant_model,
+            "max_tokens": 800,
+            "messages": [{"role": "system", "content": system_prompt}, *messages],
+        }
+    else:
+        url = f"{settings.assistant_api_base_url}/v1/messages"
+        headers = {
+            "x-api-key": settings.assistant_api_key or "",
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+        payload = {
+            "model": settings.assistant_model,
+            "max_tokens": 800,
+            "system": system_prompt,
+            "messages": messages,
+        }
+
     try:
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as client:
-            response = await client.post(
-                f"{settings.assistant_api_base_url}/v1/messages",
-                headers={
-                    "x-api-key": settings.assistant_api_key or "",
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": settings.assistant_model,
-                    "max_tokens": 800,
-                    "system": system_prompt,
-                    "messages": messages,
-                },
-            )
+            response = await client.post(url, headers=headers, json=payload)
     except httpx.TimeoutException as exc:
         raise AssistantUpstreamError("The assistant took too long to respond.") from exc
     except httpx.HTTPError as exc:
@@ -85,9 +103,12 @@ async def ask(message: str, history: list[AssistantTurn] | None = None) -> str:
 
     data = response.json()
     try:
-        blocks = data["content"]
-        text = "".join(block["text"] for block in blocks if block.get("type") == "text")
-    except (KeyError, TypeError) as exc:
+        if is_openai_format:
+            text = data["choices"][0]["message"]["content"] or ""
+        else:
+            blocks = data["content"]
+            text = "".join(block["text"] for block in blocks if block.get("type") == "text")
+    except (KeyError, IndexError, TypeError) as exc:
         raise AssistantUpstreamError("Assistant provider returned an unexpected response shape.") from exc
 
     if not text.strip():

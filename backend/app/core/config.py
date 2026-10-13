@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     assistant_model: str = "claude-3-5-haiku-latest"
     # Anthropic Messages API, overridable for a compatible self-hosted proxy.
     assistant_api_base_url: str = "https://api.anthropic.com"
+    # Which wire format assistant_api_base_url speaks. "anthropic" (default)
+    # is the Messages API (api.anthropic.com). "openai" is the OpenAI-style
+    # chat-completions format that free-tier providers such as Groq
+    # (https://api.groq.com/openai) also implement, so an operator with no
+    # budget can run the assistant on a provider's free tier instead of a
+    # paid Anthropic key -- see app/services/assistant.py.
+    assistant_api_format: str = "anthropic"
 
     @property
     def assistant_configured(self) -> bool:
