@@ -6,6 +6,9 @@ import { DisclaimerBanner, ErrorBanner, SyntheticDataBanner, ScenarioCaption } f
 import RiskBadge from "@/components/RiskBadge";
 import RiskTrendChart, { type TrendSeries } from "@/components/RiskTrendChart";
 import SimulationCustomizer from "@/components/SimulationCustomizer";
+import SimulationNarrativePanel from "@/components/SimulationNarrativePanel";
+import { buildMissionNarrative } from "@/lib/simulationNarrative";
+import { saveCustomScenario, clearCustomScenario } from "@/lib/scenarioStore";
 import type { CountermeasurePlan, MissionResponse, SimulationRunRequestBody, SimulationRunResponse } from "@/types/api";
 import { SCENARIO_IMAGES } from "@/lib/scenario-images";
 import HudFrame from "@/components/HudFrame";
@@ -34,12 +37,28 @@ export default function SimulationPage() {
     try {
       const result = await runSimulation(payload);
       setData(result);
+      // Mirror this run's resolved crew/mission so the Mission overview and
+      // Genetics pages can show the same customized scenario (see
+      // lib/scenarioStore.ts). A plain default run (no overrides sent)
+      // clears it, so those pages fall back to the Ares-180 defaults again.
+      const hasOverrides =
+        (payload.crew_overrides && payload.crew_overrides.length > 0) ||
+        payload.mission_overrides != null ||
+        payload.active_event_ids != null;
+      if (hasOverrides) {
+        saveCustomScenario(result.mission, result.crew_profiles);
+      } else {
+        clearCustomScenario();
+      }
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Unknown error.");
     } finally {
       setLoading(false);
     }
   }
+
+  const narrative =
+    data && mission ? buildMissionNarrative(data.trajectories, data.band_day_counts, mission.events) : null;
 
   const series: TrendSeries[] = (data?.trajectories ?? []).map((t) => ({
     id: t.crew_id,
@@ -87,6 +106,8 @@ export default function SimulationPage() {
             <h2 className="mb-3 text-lg font-semibold">Operational risk over the mission</h2>
             <RiskTrendChart series={series} maxDay={maxDay} yLabel="operational_risk" />
           </section>
+
+          {narrative && <SimulationNarrativePanel narrative={narrative} />}
 
           <section>
             <h2 className="mb-3 text-lg font-semibold">Days by risk band, per crew member</h2>

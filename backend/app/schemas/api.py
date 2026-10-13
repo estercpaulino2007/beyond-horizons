@@ -140,6 +140,15 @@ class SimulationRunResponse(DomainModel):
         description="Per crew member, how many simulated days fell in each risk band "
         "(low/moderate/high/critical)."
     )
+    mission: MissionConfig = Field(
+        description="The mission configuration actually simulated, after any mission_overrides "
+        "were applied. Lets a caller that customized the scenario show the same resolved "
+        "values elsewhere (e.g. the Mission overview page) without re-deriving them."
+    )
+    crew_profiles: list[CrewProfile] = Field(
+        description="The crew profiles actually simulated, after any crew_overrides were "
+        "applied. Same rationale as `mission` above."
+    )
 
 
 class CounterfactualAlternativeResult(DomainModel):

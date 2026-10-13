@@ -90,6 +90,16 @@ def build_causal_nodes() -> list[CausalNode]:
             description="Risk of clinically significant bone mineral density loss.",
         ),
         CausalNode(
+            id="cancer_risk",
+            label="Radiation-Associated Cancer Risk",
+            category="physiological",
+            description=(
+                "Long-term, population-level risk of radiation-induced carcinogenesis from "
+                "cumulative mission exposure -- a downstream consequence tracked by NASA's own "
+                "Human Research Program, not a per-crew-member diagnosis this project can produce."
+            ),
+        ),
+        CausalNode(
             id="exercise_availability",
             label="Exercise Availability",
             category="countermeasure",
@@ -245,6 +255,26 @@ def build_causal_edges() -> list[CausalEdge]:
                 "EVA carries a recognized risk, not a specific mechanism or effect size",
                 "Planetary (non-microgravity) EVA physiological demands are characterised only for a "
                 "limited number of Lunar/Mars analogue sites per the source",
+            ],
+        ),
+        CausalEdge(
+            source="radiation_exposure",
+            target="cancer_risk",
+            relation="increases",
+            weight=0.60,
+            evidence_level="supported_evidence",
+            uncertainty=0.35,
+            evidence_reference=(
+                "HRP-RADIATION-CARCINOGENESIS: NASA formally tracks a Risk of Radiation "
+                "Carcinogenesis from cumulative mission exposure"
+            ),
+            limitations=[
+                "The source page tracks this as a long-term, population-level risk category, "
+                "not a per-individual diagnosis, timeline or specific gene/mutation this project "
+                "can honestly report for a given crew member",
+                "This project has no data linking a specific dose in the simulation to a "
+                "quantified change in cancer probability -- the weight above is a qualitative "
+                "scenario parameter, not a dose-response figure from the source",
             ],
         ),
         # --- Not independently verified: exploratory_hypothesis ---

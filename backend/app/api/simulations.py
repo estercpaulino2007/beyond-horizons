@@ -88,4 +88,6 @@ def run_simulation(request: SimulationRunRequest) -> SimulationRunResponse:
         synthetic_data_notice=SYNTHETIC_DATA_NOTICE_EN,
         trajectories=trajectories,
         band_day_counts=band_day_counts,
+        mission=mission,
+        crew_profiles=crew_profiles,
     )

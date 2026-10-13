@@ -56,3 +56,28 @@ export function ErrorBanner({ message }: { message: string }) {
 export function ScenarioCaption({ text = "Synthetic illustration — AI-generated concept art, not a real photograph" }: { text?: string }) {
   return <span className="scenario-caption">{text}</span>;
 }
+
+/**
+ * Shown on the Mission and Genetics pages when they are displaying a
+ * customized crew/mission (from the last simulation the person ran on the
+ * Simulation page, see lib/scenarioStore.ts) instead of the Ares-180
+ * defaults -- so it's never ambiguous which numbers are on screen.
+ */
+export function CustomScenarioBanner({ savedAt, onReset }: { savedAt: string; onReset: () => void }) {
+  const when = new Date(savedAt).toLocaleString();
+  return (
+    <div
+      role="note"
+      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-2.5 text-sm"
+      style={toneStyle("var(--tone-violet)")}
+    >
+      <span>
+        Showing the <strong className="font-semibold">customized</strong> crew/mission from the
+        simulation you ran at {when}, not the Ares-180 defaults.
+      </span>
+      <button type="button" onClick={onReset} className="btn-ghost shrink-0 !px-3 !py-1 text-xs">
+        Reset to default
+      </button>
+    </div>
+  );
+}

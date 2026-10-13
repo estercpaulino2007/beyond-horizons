@@ -92,6 +92,6 @@ def test_edge_referencing_unknown_node_is_rejected(monkeypatch):
 
 def test_node_count_and_categories():
     nodes = build_causal_nodes()
-    assert len(nodes) == 13
+    assert len(nodes) == 14
     categories = {n.category for n in nodes}
     assert categories <= {"exposure", "molecular", "behavioral", "physiological", "operational", "countermeasure"}

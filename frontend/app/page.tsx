@@ -1,10 +1,15 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ApiError, getMission } from "@/lib/api";
-import { ErrorBanner, SyntheticDataBanner, ScenarioCaption } from "@/components/Banner";
+import { ErrorBanner, SyntheticDataBanner, ScenarioCaption, CustomScenarioBanner } from "@/components/Banner";
 import { SCENARIO_IMAGES } from "@/lib/scenario-images";
 import HudFrame from "@/components/HudFrame";
 import HeroCelestial from "@/components/HeroCelestial";
 import RealEvidenceStrip from "@/components/RealEvidenceStrip";
+import { useCustomScenario } from "@/lib/useCustomScenario";
+import type { CrewProfile, MissionConfig, MissionResponse } from "@/types/api";
 
 const DESTINATION_LABELS: Record<string, string> = {
   low_earth_orbit: "Low Earth Orbit",
@@ -22,14 +27,23 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-export default async function Home() {
-  let data;
-  let error: string | null = null;
-  try {
-    data = await getMission();
-  } catch (e) {
-    error = e instanceof ApiError ? e.message : "Unknown error.";
-  }
+export default function Home() {
+  const [data, setData] = useState<MissionResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { scenario, reset } = useCustomScenario();
+
+  useEffect(() => {
+    getMission()
+      .then(setData)
+      .catch((e) => setError(e instanceof ApiError ? e.message : "Unknown error."));
+  }, []);
+
+  // Scripted events are always the canonical catalog (independent of crew
+  // customization); only the mission parameters and crew traits shown below
+  // reflect a customized scenario, mirroring exactly what was simulated
+  // (see lib/scenarioStore.ts).
+  const mission: MissionConfig | undefined = scenario?.mission ?? data?.mission;
+  const crewProfiles: CrewProfile[] | undefined = scenario?.crew_profiles ?? data?.crew_profiles;
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
@@ -69,23 +83,24 @@ export default async function Home() {
 
       {error && <ErrorBanner message={error} />}
 
-      {data && (
+      {data && mission && crewProfiles && (
         <div className="space-y-8">
-          <div className="enter">
+          <div className="enter flex flex-col gap-3">
             <SyntheticDataBanner text={data.synthetic_data_notice} />
+            {scenario && <CustomScenarioBanner savedAt={scenario.saved_at} onReset={reset} />}
           </div>
 
           <RealEvidenceStrip />
 
           <section className="panel enter enter-delay-1 p-6">
-            <h2 className="text-lg font-semibold">{data.mission.mission_name}</h2>
+            <h2 className="text-lg font-semibold">{mission.mission_name}</h2>
             <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <Stat label="Destination" value={DESTINATION_LABELS[data.mission.destination] ?? data.mission.destination} />
-              <Stat label="Duration" value={`${data.mission.duration_days} days`} />
-              <Stat label="Crew size" value={String(data.mission.crew_size)} />
+              <Stat label="Destination" value={DESTINATION_LABELS[mission.destination] ?? mission.destination} />
+              <Stat label="Duration" value={`${mission.duration_days} days`} />
+              <Stat label="Crew size" value={String(mission.crew_size)} />
               <Stat
                 label="Comm. delay"
-                value={`${data.mission.communication_delay_minutes} min`}
+                value={`${mission.communication_delay_minutes} min`}
               />
             </dl>
           </section>
@@ -93,7 +108,7 @@ export default async function Home() {
           <section className="enter enter-delay-2">
             <h2 className="mb-3 text-lg font-semibold">Crew</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {data.crew_profiles.map((crew) => (
+              {crewProfiles.map((crew) => (
                 <div key={crew.id} className="panel panel-interactive flex flex-col gap-2 p-5">
                   <div>
                     <p className="font-semibold">{crew.display_name}</p>
