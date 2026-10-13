@@ -1,24 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import { ApiError, runSimulation } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { ApiError, getCountermeasureCatalog, getMission, runSimulation } from "@/lib/api";
 import { DisclaimerBanner, ErrorBanner, SyntheticDataBanner, ScenarioCaption } from "@/components/Banner";
 import RiskBadge from "@/components/RiskBadge";
 import RiskTrendChart, { type TrendSeries } from "@/components/RiskTrendChart";
-import type { SimulationRunResponse } from "@/types/api";
+import SimulationCustomizer from "@/components/SimulationCustomizer";
+import type { CountermeasurePlan, MissionResponse, SimulationRunRequestBody, SimulationRunResponse } from "@/types/api";
 import { SCENARIO_IMAGES } from "@/lib/scenario-images";
 import HudFrame from "@/components/HudFrame";
 
 export default function SimulationPage() {
+  const [mission, setMission] = useState<MissionResponse | null>(null);
+  const [catalog, setCatalog] = useState<CountermeasurePlan[]>([]);
+  const [setupError, setSetupError] = useState<string | null>(null);
+
   const [data, setData] = useState<SimulationRunResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleRun() {
+  useEffect(() => {
+    Promise.all([getMission(), getCountermeasureCatalog()])
+      .then(([missionResult, catalogResult]) => {
+        setMission(missionResult);
+        setCatalog(catalogResult);
+      })
+      .catch((e) => setSetupError(e instanceof ApiError ? e.message : "Unknown error."));
+  }, []);
+
+  async function handleRun(payload: SimulationRunRequestBody) {
     setLoading(true);
     setError(null);
     try {
-      const result = await runSimulation();
+      const result = await runSimulation(payload);
       setData(result);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Unknown error.");
@@ -42,19 +56,23 @@ export default function SimulationPage() {
       >
         <HudFrame />
         <ScenarioCaption text="Crew quarters · modeled sleep-debt dynamics · synthetic illustration, not a real mission photo" />
-        <div className="hero-content flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="eyebrow">Ares-180 · 180-day mission</p>
-            <h1 className="display-title mt-1 text-2xl sm:text-3xl">Daily simulation</h1>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              Runs the engine over the full 180-day Ares-180 seed for all four crew members.
-            </p>
-          </div>
-          <button onClick={handleRun} disabled={loading} className="btn-primary disabled:opacity-50">
-            {loading ? "Running simulation..." : data ? "Run again" : "Run simulation"}
-          </button>
+        <div className="hero-content">
+          <p className="eyebrow">Ares-180 · customizable scenario</p>
+          <h1 className="display-title mt-1 text-2xl sm:text-3xl">Daily simulation</h1>
+          <p className="mt-1 max-w-2xl text-sm text-[var(--muted)]">
+            Customize crew traits, mission parameters, active events and countermeasures below, or
+            just run the Ares-180 default scenario as-is.
+          </p>
         </div>
       </section>
+
+      {setupError && <ErrorBanner message={setupError} />}
+
+      {mission && (
+        <div className="mb-8">
+          <SimulationCustomizer mission={mission} catalog={catalog} onRun={handleRun} loading={loading} />
+        </div>
+      )}
 
       {error && <ErrorBanner message={error} />}
 
@@ -74,69 +92,36 @@ export default function SimulationPage() {
             <h2 className="mb-3 text-lg font-semibold">Days by risk band, per crew member</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {data.trajectories.map((t) => {
-                const counts = data.band_day_counts[t.crew_id];
+                const counts = data.band_day_counts[t.crew_id] ?? { low: 0, moderate: 0, high: 0, critical: 0 };
                 return (
                   <div key={t.crew_id} className="panel panel-interactive p-5">
                     <p className="mb-3 font-semibold">{t.display_name}</p>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2 text-sm">
                       {(["low", "moderate", "high", "critical"] as const).map((band) => (
-                        <div key={band} className="flex items-center justify-between gap-2">
+                        <div key={band} className="flex items-center justify-between">
                           <RiskBadge band={band} />
-                          <span className="font-mono text-sm">{counts?.[band] ?? 0}</span>
+                          <span className="mono-tag">{counts[band]} days</span>
                         </div>
                       ))}
                     </div>
+                    {t.vulnerability_windows.length > 0 && (
+                      <div className="mt-4 border-t border-[var(--border)] pt-3 text-xs text-[var(--muted)]">
+                        <p className="mb-1 font-medium">Vulnerability windows</p>
+                        {t.vulnerability_windows.map((w, i) => (
+                          <p key={i}>
+                            Day {w.day_start}
+                            {w.day_end !== w.day_start ? `–${w.day_end}` : ""} ({w.severity}) —{" "}
+                            {w.primary_drivers.join(", ")}
+                          </p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
           </section>
-
-          <section>
-            <h2 className="mb-3 text-lg font-semibold">Vulnerability windows</h2>
-            <p className="mb-3 text-sm text-[var(--muted)]">
-              Maximal runs of consecutive days where a crew member&apos;s risk band was
-              &quot;high&quot; or &quot;critical&quot;, with the risk drivers that appeared most often.
-            </p>
-            <div className="space-y-4">
-              {data.trajectories.map((t) =>
-                t.vulnerability_windows.length === 0 ? null : (
-                  <div key={t.crew_id} className="panel panel-interactive p-5">
-                    <p className="mb-2 font-semibold">{t.display_name}</p>
-                    <div className="space-y-2">
-                      {t.vulnerability_windows.map((w) => (
-                        <div
-                          key={`${w.day_start}-${w.day_end}`}
-                          className="flex flex-col gap-1 border-l-2 border-[var(--accent-strong)] pl-3 text-sm sm:flex-row sm:items-baseline sm:gap-3"
-                        >
-                          <span className="font-mono text-xs text-[var(--faint)]">
-                            days {w.day_start}–{w.day_end}
-                          </span>
-                          <RiskBadge band={w.severity} />
-                          <span className="text-[var(--muted)]">
-                            top drivers: {w.primary_drivers.join(", ")}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ),
-              )}
-              {data.trajectories.every((t) => t.vulnerability_windows.length === 0) && (
-                <p className="text-sm text-[var(--muted)]">
-                  No high/critical vulnerability windows were detected for any crew member.
-                </p>
-              )}
-            </div>
-          </section>
         </div>
-      )}
-
-      {!data && !error && (
-        <p className="text-sm text-[var(--muted)]">
-          Click &quot;Run simulation&quot; to execute the engine and see real, computed results —
-          nothing here is pre-rendered or guessed.
-        </p>
       )}
     </main>
   );

@@ -11,11 +11,11 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from app.schemas.common import DomainModel
+from app.schemas.common import DomainModel, Unit
 from app.schemas.countermeasure import CountermeasurePlan
 from app.schemas.crew import CrewProfile
 from app.schemas.events import SimulationEvent
-from app.schemas.mission import MissionConfig
+from app.schemas.mission import Destination, MissionConfig
 from app.schemas.research import ExperimentProposal
 from app.schemas.simulation_state import RiskResult
 
@@ -29,6 +29,51 @@ class MissionResponse(DomainModel):
     synthetic_data_notice: str
 
 
+class CrewBaselineOverride(DomainModel):
+    """Partial override for one crew member's baseline traits (spec section
+    2.1 fields). Any field left unset (null) keeps that crew member's seed
+    default -- this is how a caller customizes only some traits without
+    having to resend every value.
+    """
+
+    radiation_sensitivity: Unit | None = None
+    bone_loss_susceptibility: Unit | None = None
+    sleep_resilience: Unit | None = None
+    muscle_recovery: Unit | None = None
+    cognitive_resilience: Unit | None = None
+    inflammatory_baseline: Unit | None = None
+
+
+class CrewOverride(DomainModel):
+    id: str = Field(
+        min_length=1,
+        max_length=64,
+        description="Must match a crew id from GET /api/v1/missions/{mission_id} (e.g. 'atlas'). "
+        "An id that doesn't match any seed crew member is ignored.",
+    )
+    display_name: str | None = Field(default=None, min_length=1, max_length=80)
+    baseline: CrewBaselineOverride | None = None
+
+
+class MissionOverride(DomainModel):
+    """Partial override for the mission's own scenario parameters (spec
+    section 2.2 fields). Any field left unset (null) keeps the seed
+    mission's value. All still synthetic_parameter -- customizing a number
+    does not turn it into a measured quantity.
+    """
+
+    destination: Destination | None = None
+    duration_days: int | None = Field(default=None, ge=10, le=1095)
+    communication_delay_minutes: float | None = Field(default=None, ge=0.0, le=1200.0)
+    gravity_g: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Only meaningful for a surface destination; ignored (forced to 0.0) for an "
+        "orbital/transit destination, which is always microgravity in this model.",
+    )
+
+
 class SimulationRunRequest(DomainModel):
     mission_id: str = Field(
         default="ares-180",
@@ -39,7 +84,23 @@ class SimulationRunRequest(DomainModel):
     countermeasures: list[CountermeasurePlan] = Field(
         default_factory=list,
         description="Optional countermeasures, applied for the entire simulated period "
-        "(no partial-mission activation window yet -- see docs/methodology.md).",
+        "(no partial-mission activation window yet -- see docs/methodology.md). See "
+        "GET /api/v1/countermeasures/catalog for the available plans.",
+    )
+    crew_overrides: list[CrewOverride] = Field(
+        default_factory=list,
+        description="Optional per-crew-member baseline overrides. Crew members not listed here "
+        "keep the seed mission's default baseline.",
+    )
+    mission_overrides: MissionOverride | None = Field(
+        default=None,
+        description="Optional overrides to the mission's own scenario parameters (destination, "
+        "duration, gravity, communication delay).",
+    )
+    active_event_ids: list[str] | None = Field(
+        default=None,
+        description="Which of the mission's scripted events (by id) to include. Omit/null to "
+        "include all of the mission's default events; pass [] to run with no scripted events.",
     )
 
 

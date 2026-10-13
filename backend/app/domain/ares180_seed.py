@@ -277,24 +277,36 @@ def build_daily_exposures(
     crew_profiles: list[CrewProfile],
     eva_day: int = EVA_DAY,
     eva_crew_id: str = EVA_ORIGINAL_CREW_ID,
+    total_days: int = TOTAL_DAYS,
+    exercise_failure_start_day: int = EXERCISE_FAILURE_START_DAY,
+    exercise_failure_end_day: int = EXERCISE_FAILURE_END_DAY,
+    radiation_storm_day: int = RADIATION_STORM_DAY,
 ) -> list[DailyExposure]:
-    """One DailyExposure per (day, crew member), 1..TOTAL_DAYS.
+    """One DailyExposure per (day, crew member), 1..total_days.
 
     Deterministic: a single `random.Random(RNG_SEED)` is consumed in a fixed
     (day, crew) order, so this function returns identical output on every
-    call, in every process, as long as RNG_SEED and TOTAL_DAYS are unchanged.
-    This holds regardless of `eva_day`/`eva_crew_id`: the RNG stream consumed
-    per (day, crew) does not depend on which day is "the EVA day", only the
-    deterministic eva_load/workload formula below does -- so the counterfactual
-    engine (Step 5) can rebuild exposures for a different EVA day or a
-    different assigned crew member and still get fully reproducible output.
+    call, in every process, as long as RNG_SEED and the day-count are
+    unchanged. This holds regardless of `eva_day`/`eva_crew_id`: the RNG
+    stream consumed per (day, crew) does not depend on which day is "the EVA
+    day", only the deterministic eva_load/workload formula below does -- so
+    the counterfactual engine (Step 5) and a customized simulation run
+    (app/domain/scenario_builder.py) can rebuild exposures for a different
+    EVA day, a shortened/extended mission, or a disabled scripted event, and
+    still get fully reproducible output.
+
+    `total_days` and the three `*_day`/`*_start_day`/`*_end_day` parameters
+    default to this seed's own Ares-180 values so every existing caller is
+    unaffected; a customized run that excludes a scripted event passes that
+    event's day outside `[1, total_days]` instead (see scenario_builder.py)
+    so this function never needs an "is this event even active" flag.
     """
     rng = random.Random(RNG_SEED)
     exposures: list[DailyExposure] = []
 
-    for day in range(1, TOTAL_DAYS + 1):
-        exercise_unavailable = EXERCISE_FAILURE_START_DAY <= day <= EXERCISE_FAILURE_END_DAY
-        is_storm_day = day == RADIATION_STORM_DAY
+    for day in range(1, total_days + 1):
+        exercise_unavailable = exercise_failure_start_day <= day <= exercise_failure_end_day
+        is_storm_day = day == radiation_storm_day
         is_eva_day = day == eva_day
 
         for crew in crew_profiles:

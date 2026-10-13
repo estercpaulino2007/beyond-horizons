@@ -11,10 +11,12 @@ import type {
   AssistantStatusResponse,
   AssistantTurn,
   CounterfactualCompareResponse,
+  CountermeasurePlan,
   DebateResult,
   EvidenceGraphResponse,
   MissionResponse,
   ResearchNavigatorRankingsResponse,
+  SimulationRunRequestBody,
   SimulationRunResponse,
 } from "@/types/api";
 
@@ -54,11 +56,19 @@ export function getMission(missionId: string = DEFAULT_MISSION_ID): Promise<Miss
   return request<MissionResponse>(`/api/v1/missions/${missionId}`);
 }
 
-export function runSimulation(missionId: string = DEFAULT_MISSION_ID): Promise<SimulationRunResponse> {
+export function runSimulation(body: SimulationRunRequestBody = {}): Promise<SimulationRunResponse> {
   return request<SimulationRunResponse>("/api/v1/simulations/run", {
     method: "POST",
-    body: JSON.stringify({ mission_id: missionId, countermeasures: [] }),
+    body: JSON.stringify({
+      mission_id: DEFAULT_MISSION_ID,
+      countermeasures: [],
+      ...body,
+    }),
   });
+}
+
+export function getCountermeasureCatalog(): Promise<CountermeasurePlan[]> {
+  return request<CountermeasurePlan[]>("/api/v1/countermeasures/catalog");
 }
 
 export function compareCounterfactuals(

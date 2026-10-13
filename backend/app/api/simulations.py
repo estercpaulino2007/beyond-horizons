@@ -6,6 +6,12 @@ from fastapi import APIRouter, HTTPException
 
 from app.core.notices import SIMULATION_DISCLAIMER, SYNTHETIC_DATA_NOTICE_EN
 from app.domain.mission_catalog import available_mission_ids, get_mission_dataset
+from app.domain.scenario_builder import (
+    apply_crew_overrides,
+    apply_event_filter,
+    apply_mission_overrides,
+    rebuild_daily_exposures,
+)
 from app.schemas.api import CrewTrajectory, SimulationRunRequest, SimulationRunResponse
 from app.services.simulation_engine import simulate_mission
 from app.services.vulnerability import find_vulnerability_windows
@@ -34,12 +40,23 @@ def run_simulation(request: SimulationRunRequest) -> SimulationRunResponse:
             ),
         )
 
+    mission = apply_mission_overrides(dataset.mission, request.mission_overrides)
+    crew_profiles = apply_crew_overrides(dataset.crew_profiles, request.crew_overrides)
+    events = apply_event_filter(dataset.events, request.active_event_ids)
+
+    has_overrides = (
+        bool(request.crew_overrides) or request.mission_overrides is not None or request.active_event_ids is not None
+    )
+    exposures = (
+        rebuild_daily_exposures(crew_profiles, mission, events) if has_overrides else dataset.daily_exposures
+    )
+
     try:
         results = simulate_mission(
-            dataset.mission,
-            dataset.crew_profiles,
-            dataset.daily_exposures,
-            dataset.events,
+            mission,
+            crew_profiles,
+            exposures,
+            events,
             request.countermeasures,
         )
     except ValueError as exc:
@@ -47,7 +64,7 @@ def run_simulation(request: SimulationRunRequest) -> SimulationRunResponse:
         # traceback for something the caller didn't cause.
         raise HTTPException(status_code=500, detail=f"Simulation could not be completed: {exc}") from exc
 
-    crew_by_id = {c.id: c for c in dataset.crew_profiles}
+    crew_by_id = {c.id: c for c in crew_profiles}
     band_day_counts: dict[str, dict[str, int]] = {}
     trajectories: list[CrewTrajectory] = []
     for crew_id, trajectory in results.items():
@@ -65,7 +82,7 @@ def run_simulation(request: SimulationRunRequest) -> SimulationRunResponse:
         )
 
     return SimulationRunResponse(
-        mission_id=dataset.mission.mission_id,
+        mission_id=mission.mission_id,
         generated_at=datetime.now(timezone.utc),
         disclaimer=SIMULATION_DISCLAIMER,
         synthetic_data_notice=SYNTHETIC_DATA_NOTICE_EN,

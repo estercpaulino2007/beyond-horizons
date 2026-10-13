@@ -78,6 +78,49 @@ export interface MissionResponse {
   synthetic_data_notice: string;
 }
 
+// --- Simulation customization (request bodies) ---
+
+export interface CrewBaselineOverride {
+  radiation_sensitivity?: number;
+  bone_loss_susceptibility?: number;
+  sleep_resilience?: number;
+  muscle_recovery?: number;
+  cognitive_resilience?: number;
+  inflammatory_baseline?: number;
+}
+
+export interface CrewOverride {
+  id: string;
+  display_name?: string;
+  baseline?: CrewBaselineOverride;
+}
+
+export interface MissionOverride {
+  destination?: Destination;
+  duration_days?: number;
+  communication_delay_minutes?: number;
+  gravity_g?: number;
+}
+
+export type TargetRisk = "musculoskeletal" | "radiation" | "cognitive_operational";
+
+export interface CountermeasurePlan {
+  id: string;
+  name: string;
+  target_risk: TargetRisk;
+  description: string;
+  limitations: string[];
+  evidence_reference: string | null;
+}
+
+export interface SimulationRunRequestBody {
+  mission_id?: string;
+  countermeasures?: CountermeasurePlan[];
+  crew_overrides?: CrewOverride[];
+  mission_overrides?: MissionOverride | null;
+  active_event_ids?: string[] | null;
+}
+
 // --- Simulation ---
 
 export interface RiskDriver {
