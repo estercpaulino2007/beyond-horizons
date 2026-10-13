@@ -6,6 +6,7 @@ import ThemeToggle from "./ThemeToggle";
 
 const LINKS = [
   { href: "/", label: "Mission" },
+  { href: "/vitals", label: "My Vitals" },
   { href: "/simulation", label: "Simulation" },
   { href: "/counterfactual", label: "EVA Decision" },
   { href: "/debate", label: "Debate Chamber" },

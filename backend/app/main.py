@@ -11,7 +11,7 @@ Persistence is added in a later step.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import assistant, counterfactual, countermeasures, debate, evidence, missions, research_navigator, simulations
+from app.api import assistant, counterfactual, countermeasures, debate, evidence, missions, research_navigator, simulations, vitals
 from app.core.config import get_settings
 from app.core.notices import PLATFORM_DISCLAIMER, SYNTHETIC_DATA_NOTICE_EN
 
@@ -46,6 +46,7 @@ def create_app() -> FastAPI:
     app.include_router(research_navigator.router, prefix=API_V1_PREFIX)
     app.include_router(debate.router, prefix=API_V1_PREFIX)
     app.include_router(assistant.router, prefix=API_V1_PREFIX)
+    app.include_router(vitals.router, prefix=API_V1_PREFIX)
 
     return app
 

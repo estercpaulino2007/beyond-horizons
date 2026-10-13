@@ -79,6 +79,11 @@ VERIFIED_SOURCES: tuple[VerifiedSource, ...] = (
         label="NASA HHP EVA Operations Risk reference page (injury/performance/long-term health)",
         docs_anchor="HRP-EVA-RISK",
     ),
+    VerifiedSource(
+        key="CLINICAL-VITALS-REFERENCE",
+        label="Standard adult resting vital-sign reference ranges (AHA/CDC/WHO general clinical guidance, not spaceflight-specific)",
+        docs_anchor="CLINICAL-VITALS-REFERENCE",
+    ),
 )
 
 

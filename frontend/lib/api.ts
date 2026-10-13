@@ -19,6 +19,8 @@ import type {
   ResearchNavigatorRankingsResponse,
   SimulationRunRequestBody,
   SimulationRunResponse,
+  VitalsEntry,
+  VitalsEvaluationResponse,
 } from "@/types/api";
 
 export class ApiError extends Error {
@@ -95,6 +97,13 @@ export function getResearchNavigatorRankings(): Promise<ResearchNavigatorRanking
 
 export function getDebate(): Promise<DebateResult> {
   return request<DebateResult>("/api/v1/debate/ares-180");
+}
+
+export function evaluateVitals(entry: VitalsEntry): Promise<VitalsEvaluationResponse> {
+  return request<VitalsEvaluationResponse>("/api/v1/vitals/evaluate", {
+    method: "POST",
+    body: JSON.stringify(entry),
+  });
 }
 
 export function getAssistantStatus(): Promise<AssistantStatusResponse> {

@@ -262,6 +262,40 @@ export interface GeneExpressionTableResponse {
   synthetic_data_notice: string;
 }
 
+// --- Vitals (self-reported, rule-based evaluation) ---
+
+export type MetricStatus = "normal" | "attention" | "alert";
+
+export interface VitalsEntry {
+  heart_rate_bpm: number;
+  spo2_percent: number;
+  body_temp_c: number;
+  respiratory_rate_bpm: number;
+  sleep_hours: number;
+  stress_level: number;
+  activity_minutes: number;
+}
+
+export interface VitalMetricEvaluation {
+  metric_id: string;
+  label: string;
+  value: number;
+  unit: string;
+  status: MetricStatus;
+  reference_range: string;
+  note: string;
+}
+
+export interface VitalsEvaluationResponse {
+  overall_status: MetricStatus;
+  metrics: VitalMetricEvaluation[];
+  insights: string[];
+  reference_source: string;
+  limitations: string[];
+  disclaimer: string;
+  synthetic_data_notice: string;
+}
+
 // --- Research navigator ---
 
 export interface ExperimentProposal {
