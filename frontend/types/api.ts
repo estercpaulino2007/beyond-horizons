@@ -173,6 +173,8 @@ export interface SimulationRunResponse {
   synthetic_data_notice: string;
   trajectories: CrewTrajectory[];
   band_day_counts: Record<string, Record<string, number>>;
+  mission: MissionConfig;
+  crew_profiles: CrewProfile[];
 }
 
 // --- Counterfactual ---
@@ -225,6 +227,37 @@ export interface EvidenceGraphResponse {
     edges: { data: CausalEdgeData }[];
   };
   evidence_level_legend: Record<string, string>;
+  disclaimer: string;
+  synthetic_data_notice: string;
+}
+
+// --- Real gene-expression data (NAG9-1024 / Burns et al. 2002) ---
+
+export type GeneResponseCategory = "reversal_response" | "additive_response";
+
+export interface GeneExpressionRecord {
+  gene_symbol: string;
+  accession: string;
+  gene_description: string;
+  category: GeneResponseCategory;
+  control: number;
+  vitamin_a_alone: number;
+  dose_9gy: number;
+  dose_9gy_plus_vitamin_a: number;
+  dose_18gy: number;
+  fold_change_9gy_vs_control: number | null;
+  vitamin_a_reduced_the_9gy_effect: boolean;
+}
+
+export interface GeneExpressionTableResponse {
+  study_citation: string;
+  organism: string;
+  tissue: string;
+  radiation_condition: string;
+  timepoint: string;
+  evidence_reference: string;
+  limitations: string[];
+  records: GeneExpressionRecord[];
   disclaimer: string;
   synthetic_data_notice: string;
 }

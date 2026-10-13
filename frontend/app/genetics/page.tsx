@@ -1,11 +1,17 @@
-import { ApiError, getEvidenceGraph } from "@/lib/api";
-import { DisclaimerBanner, ErrorBanner, SyntheticDataBanner, ScenarioCaption } from "@/components/Banner";
+"use client";
+
+import { useEffect, useState } from "react";
+import { ApiError, getCountermeasureCatalog, getEvidenceGraph, getGeneExpressionTable, getMission } from "@/lib/api";
+import { DisclaimerBanner, ErrorBanner, SyntheticDataBanner, ScenarioCaption, CustomScenarioBanner } from "@/components/Banner";
 import EvidenceBadge from "@/components/EvidenceBadge";
-import type { CausalEdgeData } from "@/types/api";
+import RadiationDoseExplorer from "@/components/RadiationDoseExplorer";
+import GeneExpressionTable from "@/components/GeneExpressionTable";
+import type { CausalEdgeData, CountermeasurePlan, CrewProfile, EvidenceGraphResponse, GeneExpressionTableResponse } from "@/types/api";
 import { SCENARIO_IMAGES } from "@/lib/scenario-images";
 import HudFrame from "@/components/HudFrame";
 import HeroCelestial from "@/components/HeroCelestial";
 import DnaHelix from "@/components/DnaHelix";
+import { useCustomScenario } from "@/lib/useCustomScenario";
 
 // Which already-verified-or-labelled edges from the evidence graph belong in
 // each section of this page. This page introduces no new claims and no new
@@ -14,8 +20,16 @@ import DnaHelix from "@/components/DnaHelix";
 const GENE_CELL_EDGE_IDS = [
   "radiation_exposure->dna_damage_response",
   "dna_damage_response->inflammatory_signaling",
+  "radiation_exposure->cancer_risk",
   "microgravity->bone_remodeling_alteration",
   "bone_remodeling_alteration->bone_loss_risk",
+];
+
+const DOSE_EXPLORER_EDGE_IDS = [
+  "radiation_exposure->dna_damage_response",
+  "dna_damage_response->inflammatory_signaling",
+  "radiation_exposure->cancer_risk",
+  "radiation_exposure->cognitive_performance_risk",
 ];
 
 const OPEN_QUESTION_EDGE_IDS = ["radiation_exposure->cognitive_performance_risk"];
@@ -45,18 +59,32 @@ function EdgeCard({ edge }: { edge: CausalEdgeData }) {
   );
 }
 
-export default async function GeneticsPage() {
-  let data;
-  let error: string | null = null;
-  try {
-    data = await getEvidenceGraph();
-  } catch (e) {
-    error = e instanceof ApiError ? e.message : "Unknown error.";
-  }
+export default function GeneticsPage() {
+  const [data, setData] = useState<EvidenceGraphResponse | null>(null);
+  const [geneExpression, setGeneExpression] = useState<GeneExpressionTableResponse | null>(null);
+  const [defaultCrew, setDefaultCrew] = useState<CrewProfile[] | null>(null);
+  const [catalog, setCatalog] = useState<CountermeasurePlan[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const { scenario, reset } = useCustomScenario();
+
+  useEffect(() => {
+    Promise.all([getEvidenceGraph(), getMission(), getCountermeasureCatalog(), getGeneExpressionTable()])
+      .then(([graph, mission, countermeasures, genes]) => {
+        setData(graph);
+        setDefaultCrew(mission.crew_profiles);
+        setCatalog(countermeasures);
+        setGeneExpression(genes);
+      })
+      .catch((e) => setError(e instanceof ApiError ? e.message : "Unknown error."));
+  }, []);
+
+  const crewProfiles = scenario?.crew_profiles ?? defaultCrew ?? [];
+  const shieldingCountermeasure = catalog.find((c) => c.id === "radiation_shielding") ?? null;
 
   const edges = data?.elements.edges.map((e) => e.data) ?? [];
   const byId = (ids: string[]) => edges.filter((e) => ids.includes(e.id));
   const geneCellEdges = byId(GENE_CELL_EDGE_IDS);
+  const doseExplorerEdges = byId(DOSE_EXPLORER_EDGE_IDS);
   const openQuestionEdges = byId(OPEN_QUESTION_EDGE_IDS);
   const solutionEdges = byId(SOLUTION_EDGE_IDS);
 
@@ -93,7 +121,18 @@ export default async function GeneticsPage() {
           <div className="flex flex-col gap-3">
             <DisclaimerBanner text={data.disclaimer} />
             <SyntheticDataBanner text={data.synthetic_data_notice} />
+            {scenario && <CustomScenarioBanner savedAt={scenario.saved_at} onReset={reset} />}
           </div>
+
+          {crewProfiles.length > 0 && (
+            <RadiationDoseExplorer
+              edges={doseExplorerEdges}
+              crewProfiles={crewProfiles}
+              shieldingCountermeasure={shieldingCountermeasure}
+            />
+          )}
+
+          {geneExpression && <GeneExpressionTable data={geneExpression} />}
 
           <section className="panel p-6">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">

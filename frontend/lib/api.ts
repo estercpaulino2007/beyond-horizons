@@ -14,6 +14,7 @@ import type {
   CountermeasurePlan,
   DebateResult,
   EvidenceGraphResponse,
+  GeneExpressionTableResponse,
   MissionResponse,
   ResearchNavigatorRankingsResponse,
   SimulationRunRequestBody,
@@ -84,6 +85,10 @@ export function getEvidenceGraph(): Promise<EvidenceGraphResponse> {
   return request<EvidenceGraphResponse>("/api/v1/evidence/graph");
 }
 
+export function getGeneExpressionTable(): Promise<GeneExpressionTableResponse> {
+  return request<GeneExpressionTableResponse>("/api/v1/evidence/gene-expression");
+}
+
 export function getResearchNavigatorRankings(): Promise<ResearchNavigatorRankingsResponse> {
   return request<ResearchNavigatorRankingsResponse>("/api/v1/research-navigator/rankings");
 }
@@ -113,7 +118,23 @@ export async function askAssistant(message: string, history: AssistantTurn[]): P
   }
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new ApiError(body?.detail ?? `${response.status} ${response.statusText}`, response.status);
+    throw new ApiError(detailToMessage(body?.detail, response), response.status);
   }
   return (await response.json()) as AssistantAskResponse;
+}
+
+// FastAPI's `detail` is usually a plain string (what this backend sends on
+// purpose, see app/api/assistant.py), but on a 422 it's a validation-error
+// array of {loc, msg, type} objects instead. Coercing that straight into
+// Error()'s message (as this file used to) produces the useless literal
+// "[object Object]" -- this always returns a readable string.
+function detailToMessage(detail: unknown, response: Response): string {
+  if (typeof detail === "string" && detail.trim()) return detail;
+  if (Array.isArray(detail) && detail.length > 0) {
+    return detail
+      .map((d) => (d && typeof d === "object" && "msg" in d ? String((d as { msg: unknown }).msg) : JSON.stringify(d)))
+      .join("; ");
+  }
+  if (detail && typeof detail === "object") return JSON.stringify(detail);
+  return `${response.status} ${response.statusText}`;
 }
