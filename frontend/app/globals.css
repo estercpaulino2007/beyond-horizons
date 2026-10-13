@@ -751,3 +751,119 @@ body::before {
 .assistant-input::placeholder {
   color: var(--faint);
 }
+
+/* ---------- Vitals "medical scan" HUD (My Vitals page) ---------- */
+/* A deliberately more intense sci-fi/medical-console treatment than the
+   rest of the site, inspired by reference mission-medbay concept art the
+   person supplied -- dark glass panels, a fine cyan grid, bracketed status
+   readouts and a pulsing body-scan silhouette. Always dark regardless of
+   the light/dark theme toggle (components/ThemeToggle.tsx): a "readout on
+   glass" look doesn't translate to a white background, the same reason
+   scenario-image hero panels stay dark-backed in both themes already. */
+
+.vitals-console {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(95, 180, 255, 0.22);
+  background: radial-gradient(120% 140% at 15% -10%, rgba(95, 180, 255, 0.12), transparent 55%), linear-gradient(180deg, #060a14, #03050a);
+  isolation: isolate;
+}
+
+.vitals-console::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: linear-gradient(rgba(124, 200, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(124, 200, 255, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(85% 85% at 50% 30%, black 40%, transparent 100%);
+}
+
+.vitals-console > * {
+  position: relative;
+  z-index: 1;
+}
+
+.vitals-card {
+  position: relative;
+  border-radius: 0.85rem;
+  border: 1px solid var(--vitals-tone, rgba(124, 200, 255, 0.3));
+  background: linear-gradient(165deg, color-mix(in srgb, var(--vitals-tone, #7cc8ff) 10%, #060a14), #050810);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02) inset, 0 18px 40px -22px color-mix(in srgb, var(--vitals-tone, #7cc8ff) 50%, transparent);
+}
+
+.vitals-bracket {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.3rem;
+  color: var(--vitals-tone, #7cc8ff);
+  background: color-mix(in srgb, var(--vitals-tone, #7cc8ff) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vitals-tone, #7cc8ff) 40%, transparent);
+}
+
+.vitals-bracket::before {
+  content: "[";
+}
+.vitals-bracket::after {
+  content: "]";
+}
+
+.vitals-pulse {
+  animation: vitals-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes vitals-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    r: var(--pulse-r-min, 5);
+  }
+  50% {
+    opacity: 1;
+    r: var(--pulse-r-max, 8);
+  }
+}
+
+.vitals-scan-sweep {
+  animation: vitals-scan-sweep 3.2s linear infinite;
+}
+
+@keyframes vitals-scan-sweep {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.vitals-ecg-line {
+  stroke-dasharray: 1400;
+  animation: vitals-ecg-draw 2.6s linear infinite;
+}
+
+@keyframes vitals-ecg-draw {
+  0% {
+    stroke-dashoffset: 1400;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vitals-pulse,
+  .vitals-scan-sweep,
+  .vitals-ecg-line {
+    animation: none;
+  }
+}

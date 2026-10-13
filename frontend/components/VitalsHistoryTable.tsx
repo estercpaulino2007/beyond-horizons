@@ -1,14 +1,18 @@
 import type { VitalsHistoryRecord } from "@/lib/vitalsStore";
 import type { VitalsEntry } from "@/types/api";
 
-const COLUMNS: { key: keyof VitalsEntry; label: string; unit: string }[] = [
+type NumericColumnKey = Exclude<keyof VitalsEntry, "heart_rhythm" | "body_mass_kg">;
+
+const COLUMNS: { key: NumericColumnKey; label: string; unit: string }[] = [
   { key: "heart_rate_bpm", label: "HR", unit: "bpm" },
   { key: "spo2_percent", label: "SpO2", unit: "%" },
   { key: "body_temp_c", label: "Temp", unit: "°C" },
   { key: "respiratory_rate_bpm", label: "Resp.", unit: "/min" },
   { key: "sleep_hours", label: "Sleep", unit: "h" },
+  { key: "sleep_quality", label: "Sleep Q", unit: "/5" },
   { key: "stress_level", label: "Stress", unit: "/10" },
   { key: "activity_minutes", label: "Activity", unit: "min" },
+  { key: "hydration_level", label: "Hydration", unit: "/10" },
 ];
 
 function Delta({ current, previous }: { current: number; previous: number | null }) {
@@ -33,9 +37,9 @@ export default function VitalsHistoryTable({ records, onDelete }: { records: Vit
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[720px] text-left text-sm">
+      <table className="w-full min-w-[820px] text-left text-sm font-mono">
         <thead>
-          <tr className="border-b text-xs uppercase tracking-wide text-[var(--faint)]" style={{ borderColor: "var(--border)" }}>
+          <tr className="border-b text-xs uppercase tracking-wide text-[#7e93b3]" style={{ borderColor: "rgba(124,200,255,0.18)" }}>
             <th className="py-2 pr-3">When</th>
             {COLUMNS.map((c) => (
               <th key={c.key} className="py-2 pr-3">
@@ -46,13 +50,14 @@ export default function VitalsHistoryTable({ records, onDelete }: { records: Vit
             <th className="py-2 pr-3" />
           </tr>
         </thead>
-        <tbody className="divide-y" style={{ borderColor: "var(--border)" }}>
+        <tbody className="divide-y" style={{ borderColor: "rgba(124,200,255,0.12)" }}>
           {newestFirst.map((record) => {
             const idx = chronological.findIndex((r) => r.id === record.id);
             const previous = idx > 0 ? chronological[idx - 1]! : null;
+            const statusColor = record.evaluation.overall_status === "normal" ? "#6fe3a3" : record.evaluation.overall_status === "attention" ? "#f5c26b" : "#ff8a8a";
             return (
               <tr key={record.id}>
-                <td className="py-2.5 pr-3 text-xs text-[var(--faint)]">
+                <td className="py-2.5 pr-3 text-xs text-[#7e93b3]">
                   {new Date(record.recorded_at).toLocaleString(undefined, {
                     month: "short",
                     day: "numeric",
@@ -61,18 +66,18 @@ export default function VitalsHistoryTable({ records, onDelete }: { records: Vit
                   })}
                 </td>
                 {COLUMNS.map((c) => (
-                  <td key={c.key} className="py-2.5 pr-3">
+                  <td key={c.key} className="py-2.5 pr-3 text-[#d7e6ff]">
                     <div>{record.entry[c.key]}</div>
                     <div className="text-xs">
                       <Delta current={record.entry[c.key]} previous={previous ? previous.entry[c.key] : null} />
                     </div>
                   </td>
                 ))}
-                <td className="py-2.5 pr-3 text-xs capitalize" style={{ color: `var(--tone-${record.evaluation.overall_status === "normal" ? "emerald" : record.evaluation.overall_status === "attention" ? "amber" : "red"})` }}>
+                <td className="py-2.5 pr-3 text-xs uppercase" style={{ color: statusColor }}>
                   {record.evaluation.overall_status}
                 </td>
                 <td className="py-2.5 pr-3">
-                  <button type="button" onClick={() => onDelete(record.id)} className="text-xs text-[var(--faint)] hover:text-[var(--danger)]">
+                  <button type="button" onClick={() => onDelete(record.id)} className="text-xs text-[#7e93b3] hover:text-[#ff8a8a]">
                     Remove
                   </button>
                 </td>

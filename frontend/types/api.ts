@@ -266,24 +266,36 @@ export interface GeneExpressionTableResponse {
 
 export type MetricStatus = "normal" | "attention" | "alert";
 
+// The six monitoring categories from the challenge brief -- see
+// backend/app/schemas/vitals.py's VitalsCategory for the authoritative list.
+export type VitalsCategory = "cardiac" | "respiratory" | "temperature" | "sleep_fatigue" | "activity_muscle" | "hydration_other";
+
+export type HeartRhythm = "regular" | "irregular";
+
 export interface VitalsEntry {
   heart_rate_bpm: number;
+  heart_rhythm: HeartRhythm;
   spo2_percent: number;
   body_temp_c: number;
   respiratory_rate_bpm: number;
   sleep_hours: number;
+  sleep_quality: number;
   stress_level: number;
   activity_minutes: number;
+  hydration_level: number;
+  body_mass_kg?: number | null;
 }
 
 export interface VitalMetricEvaluation {
   metric_id: string;
   label: string;
+  category: VitalsCategory;
   value: number;
   unit: string;
   status: MetricStatus;
   reference_range: string;
   note: string;
+  recommendations: string[];
 }
 
 export interface VitalsEvaluationResponse {
