@@ -10,7 +10,7 @@ import type { CausalEdgeData, CountermeasurePlan, CrewProfile, EvidenceGraphResp
 import { SCENARIO_IMAGES } from "@/lib/scenario-images";
 import HudFrame from "@/components/HudFrame";
 import HeroCelestial from "@/components/HeroCelestial";
-import DnaHelix from "@/components/DnaHelix";
+import GeneticsDnaModel from "@/components/GeneticsDnaModel";
 import { useCustomScenario } from "@/lib/useCustomScenario";
 
 // Which already-verified-or-labelled edges from the evidence graph belong in
@@ -136,7 +136,12 @@ export default function GeneticsPage() {
 
           <section className="panel p-6">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-              <DnaHelix className="mx-auto shrink-0 sm:mx-0" />
+              <div className="shrink-0 sm:mx-0">
+                <GeneticsDnaModel className="mx-auto sm:mx-0" />
+                <p className="mt-1 text-center text-[10px] uppercase tracking-wide text-[var(--faint)] sm:text-left">
+                  Drag to rotate
+                </p>
+              </div>
               <div className="space-y-3 text-sm text-[var(--muted)]">
                 <p>
                   Radiation exposure in deep space is a leading biological concern for Mars-class
@@ -148,8 +153,8 @@ export default function GeneticsPage() {
                   to operational and cognitive risk.
                 </p>
                 <p className="text-xs text-[var(--faint)]">
-                  The diagram is a decorative illustration of a double helix, not a rendering of
-                  any specific gene or sequence referenced in the evidence graph below.
+                  The model is a decorative illustration of a double helix, not a rendering of any
+                  specific gene or sequence referenced in the evidence graph below.
                 </p>
               </div>
             </div>
