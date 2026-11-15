@@ -39,7 +39,7 @@ def test_every_proposal_has_required_fields_and_limitations():
             "priority",
         } <= set(proposal)
         assert len(proposal["limitations"]) >= 1
-
+ 
 
 def test_openapi_documents_the_research_navigator_endpoint():
     schema = client.get("/openapi.json").json()
