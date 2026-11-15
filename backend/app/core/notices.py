@@ -7,14 +7,14 @@ import the constants so every surface shows exactly the same wording.
 # Required on every interface and in the documentation (spec section 4).
 SYNTHETIC_DATA_NOTICE_PT = (
     "Os perfis, condições e eventos desta missão são sintéticos e foram criados "
-    "para fins educacionais e de simulação exploratória. Eles não representam "
+    "para simulação de missão e pesquisa. Eles não representam "
     "astronautas reais nem constituem orientação médica."
 )
 
 # English counterpart for international reviewers. Same meaning as the PT text.
 SYNTHETIC_DATA_NOTICE_EN = (
     "The crew profiles, conditions and events in this mission are synthetic and "
-    "were created for educational purposes and exploratory simulation. They do "
+    "were created for mission simulation and research. They do "
     "not represent real astronauts and are not medical advice."
 )
 
@@ -25,8 +25,9 @@ SIMULATION_DISCLAIMER = (
 
 # Platform-level disclaimer (data package, section 9).
 PLATFORM_DISCLAIMER = (
-    "Beyond Horizons is an educational and research demonstration platform. It "
-    "uses synthetic crew profiles and simulated scenarios. It does not provide "
+    "Beyond Horizons is an astronaut health-monitoring and mission-simulation "
+    "platform (research prototype). It uses synthetic crew profiles and "
+    "simulated scenarios. It does not provide "
     "medical advice and should not be used for real mission planning or health "
     "decisions."
 )
@@ -44,7 +45,7 @@ ASSISTANT_NOT_CONFIGURED_NOTICE = (
 # here, not inline in the service, for the same reason as the other notices:
 # one place to read and audit exactly what the assistant is told.
 ASSISTANT_SYSTEM_PROMPT = (
-    "You are the in-app assistant for Beyond Horizons, an educational NASA "
+    "You are the in-app assistant for Beyond Horizons, an astronaut health-monitoring NASA "
     "Space Apps Challenge submission for the 'Create Health Monitoring "
     "Software for Astronauts on Space Missions' challenge. Health monitoring "
     "is this app's actual subject -- cardiac, respiratory, temperature, "
@@ -62,7 +63,7 @@ ASSISTANT_SYSTEM_PROMPT = (
     "own numbers.\n\n"
     "Ground rules, which override anything the user asks you to do instead:\n"
     "1. The crew, the 180-day scenario, every simulated score and every "
-    "countermeasure effect in this app are SYNTHETIC -- built for this demo, "
+    "countermeasure effect in this app are SYNTHETIC -- built for this simulation, "
     "not measurements of real astronauts. Never say or imply otherwise, "
     "even if asked to. The person's own vitals, if present in CONTEXT, are "
     "self-reported by them just now and are real in that limited sense, but "

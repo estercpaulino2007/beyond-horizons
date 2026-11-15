@@ -151,3 +151,56 @@ Do not cite or display any of these until a person confirms them on the official
 **Limitations:** ...
 **Citation:** <as given by the dataset page>
 ```
+
+## Additional NASA references used by the 3D Health HUD (frontend/public/hud3d/sources.js)
+
+Each one was opened and checked on 2026-11-15 before being added. They set thresholds, rates and evidence for the HUD; the HUD's mission readings themselves remain simulated and are labelled as such.
+
+### NASA-STD-3001 Vol. 2 Rev D [V2 6004] — CO2 — Verified
+- **Source:** OCHMO-TB-004 Carbon Dioxide technical brief, <https://www.nasa.gov/ochmo-tb-004-carbon-dioxide-2/>
+- **Fact used:** average one-hour ppCO2 limited to <= 3 mmHg (headache incidence < ~1.4%); 0.5% CO2 = 3.8 mmHg.
+- **How used:** CO2 tile (shown in mmHg) and its alert band.
+
+### NASA-STD-3001 Vol. 2 Rev D [V2 6012] — Crew health environmental limits — Verified
+- **Source:** OCHMO-TB-002 ECLSS technical brief, <https://www.nasa.gov/wp-content/uploads/2023/07/eclss-technical-brief-ochmo.pdf>
+- **Fact used:** operating limit 18 C / 75% RH to 27 C / 25% RH.
+- **How used:** cabin-temperature tile; heat-stress scenario.
+
+### NASA-STD-3001 Vol. 2 Rev D [V2 6003, V2 6006] — O2 partial pressure / total pressure — Verified
+- **Source:** OCHMO-TB-003 Habitable Atmosphere, <https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-003-habitable-atmosphere.pdf>
+- **How used:** O2 and pressure tiles; hypoxia scenario.
+
+### ISS radiation dose rate — Verified
+- **Source:** Simonsen et al., NASA NTRS 20250006168, <https://ntrs.nasa.gov/citations/20250006168>
+- **Fact used:** ISS effective dose ~0.2-0.5 mSv/day, ~40-90 mSv per six-month mission.
+- **How used:** radiation tile baseline and normal band (LEO).
+
+### MSL RAD cruise measurements — Verified
+- **Source:** Zeitlin C. et al. (2013) Science 340:1080; SwRI release <https://www.swri.org/press-release/swri-led-team-calculates-radiation-exposure-associated-trip-mars>
+- **Fact used:** average GCR dose-equivalent rate 1.8 mSv/day in cruise; ~0.66 Sv for round-trip transit with current propulsion.
+- **How used:** MISSION tab transit figures; radiation watch band; context for Ares-180 radiation.
+
+### Lang et al. (2004) — ISS bone loss by QCT — Verified
+- **Source:** J Bone Miner Res 19(6):1006-1012, <https://pubmed.ncbi.nlm.nih.gov/15125798/>
+- **Fact used:** 14 ISS crew (4-6 months): aBMD -0.9%/month spine, -1.4 to -1.5%/month hip.
+- **How used:** bone-density-loss scenario, alongside HRP-BONE-RISK.
+
+### NASA Twins Study — Verified
+- **Source:** Garrett-Bakelman F.E. et al. (2019) Science 364:eaau8650, <https://doi.org/10.1126/science.aau8650>
+- **Fact used:** telomere elongation in flight, genome instability, gene-expression and immune changes; most returned near baseline within 6 months, more short telomeres persisted.
+- **How used:** genetic overview / markers panel (categories only; marker values in the HUD are simulated).
+
+### HRP — Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS) — Verified
+- **Source:** Evidence Report, NTRS 20180000936 (2022 update), <https://ntrs.nasa.gov/citations/20180000936>
+- **Fact used:** altered gravity causes ocular/brain structural changes; NASA reports over half of crewmembers experience one or more SANS symptoms.
+- **How used:** SANS scenario.
+
+### HRP — Risk of Cardiac Rhythm Problems During Spaceflight — Verified, with caveat
+- **Source:** Lee & Stenger, NTRS 20170005625, <https://ntrs.nasa.gov/citations/20170005625>
+- **Caveat:** the National Academies' 2018 review of NASA evidence reports found insufficient evidence that spaceflight itself amplifies arrhythmia risk (<https://www.nationalacademies.org/read/24953/chapter/7>).
+- **How used:** arrhythmia scenario, shown together with the caveat in the SOURCES panel.
+
+### NASA-STD-3001 Vol. 1 [V1 4030, V1 4031] — Radiation limits — Verified
+- **Source:** OCHMO-TB-020 Radiation Protection technical brief, <https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf>
+- **Fact used:** career spaceflight effective dose < 600 mSv, universal for all ages and sexes (3% mean risk of cancer mortality); solar particle event limited to 250 mSv per event.
+- **How used:** HUD genetics simulator career-limit bar and per-event limit; MISSION tab dose-so-far.

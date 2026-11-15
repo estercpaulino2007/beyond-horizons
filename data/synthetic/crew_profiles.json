@@ -1,6 +1,6 @@
 {
   "mission_id": "ares-180",
-  "synthetic_data_notice": "The crew profiles, conditions and events in this mission are synthetic and were created for educational purposes and exploratory simulation. They do not represent real astronauts and are not medical advice.",
+  "synthetic_data_notice": "The crew profiles, conditions and events in this mission are synthetic and were created for mission simulation and research. They do not represent real astronauts and are not medical advice.",
   "crew_profiles": [
     {
       "id": "atlas",

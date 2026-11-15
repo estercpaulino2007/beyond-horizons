@@ -5,13 +5,13 @@
 An explainable **crew digital twin** for exploratory space-health simulation, built for the NASA Space Apps
 Challenge: *Create Health Monitoring Software for Astronauts on Space Missions*.
 
-> **Disclaimer.** Beyond Horizons is an educational and research demonstration platform. It uses synthetic
+> **Disclaimer.** Beyond Horizons is an astronaut health-monitoring and mission-simulation platform (research prototype). It uses synthetic
 > crew profiles and simulated scenarios. It does not provide medical advice and should not be used for real
 > mission planning or health decisions. It is an exploratory simulator, not a diagnosis tool, and it does not
 > replace a flight surgeon.
 >
 > **Synthetic data notice.** The crew profiles, conditions and events in this mission are synthetic and were
-> created for educational purposes and exploratory simulation. They do not represent real astronauts and are not
+> created for mission simulation and research. They do not represent real astronauts and are not
 > medical advice.
 
 ## What it is meant to do
@@ -27,6 +27,41 @@ Given a synthetic 180-day Mars-transit mission (**Ares-180**), the software will
 
 Every conclusion is meant to show its **evidence, uncertainty and limitations**. Real NASA data, data-derived
 associations, exploratory hypotheses and synthetic parameters are always labelled differently.
+
+## 3D Health HUD (`/hud`)
+
+A holographic mission-control view of the same platform, built as a standalone three.js page in
+`frontend/public/hud3d/` and opened from the **3D Health HUD** item in the nav (`frontend/app/hud/page.tsx`).
+
+- **Astronaut mode / Scan mode** -- the suit turns into a translucent hologram and the body scan reveals
+  skeleton, vessels, lungs, heart, abdominal organs and brain. Systems in *watch* or *alert* glow amber/red
+  and are labelled on the model. Drag to rotate, scroll to zoom, right-drag to move, double-click to reset.
+- **Health scenarios** (keys 1-8): nominal, hypoxia, cardiac arrhythmia, solar particle event, heat stress,
+  bone-density loss, SANS, and **My vitals** (your own latest reading, evaluated by this API).
+- **Tabs linked to this API**: My Vitals (`POST /api/v1/vitals/evaluate`), Crew Risk
+  (`POST /api/v1/simulations/run` + countermeasure catalog), EVA Decision (counterfactual + Debate Chamber),
+  Research (evidence graph + Research Navigator), Genetics (published gene-expression table).
+- **Shared history** -- the HUD writes the same `beyond-horizons:vitals-history` localStorage records as the
+  My Vitals page, so both show one history on the same domain. Completed body scans are logged too, and the
+  history can be exported/imported as JSON.
+- **Beyond AI** -- the in-app assistant (`/api/v1/assistant/ask`), grounded in the platform's data, your latest
+  saved vitals and the current scan.
+- **Customization** -- edit the astronaut's name, mission ID, phase, crew size and elapsed time (click the header), and create, edit and delete your own health scenarios (vitals, habitat environment, body and habitat system statuses, AI insight and actions) that run a full body scan on the hologram.
+- **Genetics simulator** -- pick a situation (ISS, one year in space, Mars transit), days, solar event, storm shelter and vitamin A; see the NASA-measured dose, the cancer-risk estimate, the published NAG9-1024 gene changes and the consequences NASA found, with the affected markers lit up on the 3D DNA.
+- **Opens on the 3D HUD** -- the site's home page (`/`) now opens the 3D Health HUD directly; the earlier pages (/simulation, /vitals, /genetics, /evidence, ...) stay at their own addresses.
+- **Customizable Crew Risk** -- rename the crew, set their six baseline traits (sent as `crew_overrides`), and switch the scripted events on/off (`active_event_ids`) before running the simulation.
+- **Mission control** -- the MISSION tab follows a profile day by day (ship position, dose so far, career total vs NASA's 600 mSv limit, timeline of Ares-180 events), shared with the genetics simulator.
+- **Beating 3D heart** next to the lungs in Biometrics, and in the body scan.
+- **Explorable 3D views** -- drag/scroll the ISS interior (photogrammetry), lungs, DNA and Earth-Mars transit views.
+- **Offline snapshot** -- if the API is asleep, the HUD falls back to `data/snapshot.json`, a stored copy of this API's real outputs for the deterministic Ares-180 seed, and says so on screen.
+- **NASA SOURCES** -- every threshold, rate and dataset the HUD relies on is tagged with a clickable source
+  (NASA-STD-3001 CO2 / atmosphere / ECLSS limits, ISS dose rate, MSL RAD cruise dose, HRP bone, muscle, SANS
+  and cardiac-rhythm evidence reports, the NASA Twins Study, OSDR OSD-720, NAG9-1024, LSDA osteoblast data).
+  Full list with links: `docs/data-sources.md`.
+
+The HUD reaches the backend through the `/bh-api` rewrite in `frontend/next.config.ts` (same origin, no extra
+CORS). Mission readings on the HUD are simulated and labelled **SIMULATED**; the references set the limits,
+rates and evidence behind them.
 
 ## Current status: Steps 0-9 + visual design system (Steps 11-13)
 
@@ -54,8 +89,8 @@ Chamber, Evidence Graph and Research Navigator pages, every one of them consumin
 mock data — each with an AI-generated scenario illustration in its header, always labelled as
 synthetic, never as a real photo. A manual light/dark theme toggle (top right of the nav,
 `components/ThemeToggle.tsx`) switches the whole design-token system; decorative CSS stars/moon/Mars
-(`.celestial-*` in `globals.css`) have no dependency on the image-generation budget. **No persistence
-layer exists yet** (Step 10, not built in this pass). See `docs/architecture.md` for exactly what is
+(`.celestial-*` in `globals.css`) have no dependency on the image-generation budget. **No server-side persistence
+layer exists yet** (Step 10); history is kept per browser in localStorage. See `docs/architecture.md` for exactly what is
 and isn't implemented, including a note on the scenario images' hosting.
 
 An **in-app assistant** (the chat bubble, bottom right, `components/AssistantWidget.tsx` +

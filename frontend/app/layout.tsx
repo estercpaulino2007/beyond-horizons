@@ -40,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <footer className="mx-auto w-full max-w-6xl px-6 py-8 text-xs text-[var(--faint)]">
           Beyond Horizons — NASA Space Apps Challenge, &quot;Create Health Monitoring Software for
-          Astronauts on Space Missions&quot;. Educational and research demonstration only.
+          Astronauts on Space Missions&quot;. Research prototype · synthetic mission data · not medical advice.
         </footer>
         <AssistantWidget />
       </body>
