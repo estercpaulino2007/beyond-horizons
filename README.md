@@ -285,7 +285,34 @@ The HUD alone can also be served without the backend: `cd frontend/public/hud3d 
 - See [`docs/limitations.md`](docs/limitations.md) for the full list.
 
 ## Credits
-Built by the Beyond Horizons team for the NASA Space Apps Challenge 2026. 3D models (astronaut, anatomy, heart, brain, DNA, Earth, Mars, ISS interior photogrammetry, starfield) are used under their respective licences — add each model's author and licence here before submitting.
+Built by the Beyond Horizons team for the NASA Space Apps Challenge 2026. 3D models (astronaut, anatomy, heart, brain, DNA, Earth, Mars, ISS interior photogrammetry, starfield) are used under their respective licences 
+### 3D Assets and Credits
+
+The following third-party 3D assets were incorporated into Beyond Horizons:
+
+- “ISS Photogrammetry Interior” by VTX (@VTX_car).
+  Licence: Creative Commons Attribution-NonCommercial-ShareAlike (CC BY-NC-SA).
+  https://sketchfab.com/3d-models/iss-photogrammetry-interior-6a0ff2ea447347b2adcc813e1c9912a7
+
+- “Splanchnology” by Z-Anatomy, based on BodyParts3D as described on the source page.
+  Licence: Creative Commons Attribution-ShareAlike (CC BY-SA).
+  https://sketchfab.com/3d-models/splanchnology-5cfafb312f504815aa3fec55735607a6
+
+- “Blue Brain” by Wilhelm.von.3D.
+  Licence: Creative Commons Attribution (CC BY).
+  https://sketchfab.com/3d-models/blue-brain-a7943aec0f0440b38c94c1533c0df217
+
+- “Animated Floating Astronaut in Space Suit Loop” by LasquetiSpice.
+  Licence: Creative Commons Attribution (CC BY).
+  Source: https://sketchfab.com/3d-models/animated-floating-astronaut-in-space-suit-loop-e2c4b146e58141e4b87917456a9970b1
+  Modifications: Optimized for web display and adapted with holographic visual effects in Beyond Horizons.
+
+Please refer to each source page for the applicable licence version,
+full terms and original attribution notices.
+
+Third-party assets remain subject to their respective licences and
+are not covered by the project's MIT software licence.
+
 
 ## License
 MIT — see [LICENSE](LICENSE).
