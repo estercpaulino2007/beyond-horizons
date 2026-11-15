@@ -1,7 +1,7 @@
 /**
  * Personal-baseline trend detection: "Analisa tendências e compara os dados
  * atuais com o histórico do astronauta para detectar alterações
- * potencialmente preocupantes antes que se agravem" -- deliberately built as
+ * potencialmente preocupantes antes que se agravem" -- deliberately built as 
  * a deterministic heuristic over the person's OWN saved history
  * (lib/vitalsStore.ts), computed entirely client-side.
  *
