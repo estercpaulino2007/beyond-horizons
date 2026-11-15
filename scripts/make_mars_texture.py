@@ -78,3 +78,4 @@ img = img.filter(ImageFilter.GaussianBlur(radius=0.4))
 out_path = "/tmp/claude-0/-home-claude/8487a843-0191-5cdd-826e-883821e9de41/scratchpad/textures/mars_1024.jpg"
 img.save(out_path, quality=92)
 print("saved", out_path, img.size)
+  
