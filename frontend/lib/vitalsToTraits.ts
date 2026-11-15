@@ -6,7 +6,7 @@
  *    in-app assistant as `vitals_summary` (see components/AssistantWidget.tsx
  *    and backend/app/services/assistant.py), so it can answer "how am I
  *    doing" questions about the person themselves instead of only the
- *    synthetic Ares-180 crew.
+ *    synthetic Ares-180 crew. 
  *
  *  - `vitalsToCrewBaseline()` -- a seed for the "Simulate as yourself" crew
  *    slot in components/SimulationCustomizer.tsx. This lets the person start
