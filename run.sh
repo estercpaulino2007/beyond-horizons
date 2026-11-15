@@ -3,7 +3,7 @@
 #
 # Usage:
 #   ./run.sh
-#
+# 
 # What it does, in order (each step is skipped if already done, so
 # re-running this after the first time is fast):
 #   1. Creates backend/.venv and installs backend/requirements-dev.txt, if missing.
