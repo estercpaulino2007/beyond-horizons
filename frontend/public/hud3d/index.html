@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Beyond Horizons — Space Health Monitoring System</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2244%22 fill=%22%2303204f%22 stroke=%22%235fd4ff%22 stroke-width=%224%22/%3E%3Ctext x=%2250%22 y=%2262%22 text-anchor=%22middle%22 font-size=%2234%22 font-family=%22sans-serif%22 font-weight=%22bold%22 fill=%22white%22%3EBH%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="style.css?v=30">
+<link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
 
@@ -24,6 +24,7 @@
   <div class="ld-pct" id="ldPct">0%</div>
 </div>
 
+<div id="rotateHint">📱↻ Turn your phone sideways for the full view</div>
 <div id="stage">
 <div id="app">
 
@@ -245,7 +246,7 @@
       <button class="hud-btn gs-table-btn" id="gsTableBtn">FULL DATA TABLE</button><button class="hud-btn gs-how-btn" id="gsHowBtn">HOW IT'S CALCULATED</button>
       <div class="gs-left">
         <div class="ctl"><label>Astronaut</label><select id="gsWho" class="hud-sel"></select></div>
-        <label class="chk gs-body"><input type="checkbox" id="gsBody" checked><span><b>Show effects on the body scan</b><small>radiation and time in space light up bone marrow, GI, muscles and brain (when the astronaut is you)</small></span></label>
+        <label class="chk gs-body"><input type="checkbox" id="gsBody" checked><span><b>Show effects on the body scan</b><small>radiation of 100 mSv or more, or a solar event, lights up bone marrow and the digestive tract (when the astronaut is you)</small></span></label>
         <div class="ctl"><label>Situation</label><select id="gsSit" class="hud-sel">
           <option value="leo">ISS · Low Earth Orbit</option>
           <option value="twins">ISS · one year (NASA Twins Study)</option>
@@ -509,8 +510,8 @@
   </div>
 </div>
 
-<script src="config.js?v=30"></script>
+<script src="config.js?v=32"></script>
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}</script>
-<script type="module" src="app.js?v=30"></script>
+<script type="module" src="app.js?v=32"></script>
 </body>
 </html>
