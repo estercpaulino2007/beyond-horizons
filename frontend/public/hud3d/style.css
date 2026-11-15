@@ -621,3 +621,4 @@ html.zoomed,html.zoomed body{overflow:auto}
 .scen-prev{margin:10px 0;padding:8px 12px;border:1px solid rgba(70,175,255,.3);border-radius:5px;font-size:15px;background:rgba(4,20,46,.7)}
 .scen-prev b{font-family:Orbitron;letter-spacing:1px;margin-right:6px}.scen-prev b.ok{color:#2dff8a}.scen-prev b.warn{color:#ffb020}.scen-prev b.crit{color:#ff3b4e}
 .sub small{font-family:Rajdhani,sans-serif;letter-spacing:0;color:var(--dim);font-size:13px}
+.gs-body{margin:2px 0 6px}.gs-body b{font-size:14px}.gs-body small{font-size:12px}

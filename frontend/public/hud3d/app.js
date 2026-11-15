@@ -8,8 +8,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=13';
-import { chips, initSources } from './sources.js?v=13';
+import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=15';
+import { chips, initSources } from './sources.js?v=15';
 
 /* ============================================================
    CONFIG
@@ -491,7 +491,7 @@ function updateModeVisuals(dt) {
 
 /* ---------- health highlighting on the 3D anatomy ---------- */
 function applyOrganStatus() {
-  const st = { ...ALL_OK, ...scen().organs };
+  const st = bodyOrgans();
   for (const key of Object.keys(anatMats)) {
     const u = anatMats[key].userData.u, d = anatDefaults[key];
     u.uColor.value.set(d.color); u.uPulse.value = 0; u.uBase.value = d.base ?? 0.06; u.uRim.value = d.rim ?? 1;
@@ -517,15 +517,29 @@ function applyOrganStatus() {
   const lvl = overall();
   holo.suitHoloMat?.userData.u.uColor.value.set(lvl === 'crit' ? 0x5cb8ff : 0x39c6ff);
 }
+// body systems = health scenario + effects of the situation set in GENETICS (only when the simulator is on "you")
+function geneOrgans() {
+  const g = gsim.summary; if (!g || !g.body || g.who !== 'you') return { st: {}, why: [] };
+  const st = {}, why = [], up = (k, v) => { st[k] = worst(st[k] || 'ok', v); };
+  if (g.dose >= 100 || g.spe) { up('skeletal', 'warn'); up('digestive', 'warn'); why.push(`${Math.round(g.dose)} mSv of radiation: bone marrow and the digestive (GI) tract are among the most radiation-sensitive tissues`); }
+  if (g.days >= 90 && g.sitKey !== undefined) { up('skeletal', 'warn'); up('muscular', 'warn'); why.push(`${g.days} days in weightlessness: about 1–1.5% bone loss per month and muscle loss (NASA HRP)`); }
+  if (g.days >= 180) { up('neurological', 'warn'); why.push('long-duration flight: more than half of crewmembers show SANS eye/brain signs (NASA HRP)'); }
+  return { st, why };
+}
+function bodyOrgans() {
+  const st = { ...ALL_OK, ...scen().organs }, g = geneOrgans().st;
+  for (const k of Object.keys(g)) st[k] = worst(st[k], g[k]);
+  return st;
+}
 function overall() {
-  const st = { ...ALL_OK, ...scen().organs };
+  const st = bodyOrgans();
   const vals = Object.values(st).concat(Object.entries(vitalStatus()).map(([, s]) => s));
   return vals.includes('crit') ? 'crit' : vals.includes('warn') ? 'warn' : 'ok';
 }
 const _v = new THREE.Vector3();
 function updateMarkers() {
   if (!holo.markers) return;
-  const st = { ...ALL_OK, ...scen().organs };
+  const st = bodyOrgans();
   const rect = holoCanvas.getBoundingClientRect();
   const showAny = state.mode === 'scan' && !state.scanFast && document.getElementById('view-overview').classList.contains('active');
   for (const m of holo.markers) {
@@ -673,7 +687,7 @@ function setupMiniViews() {
       piv.rotation.y = Math.sin(t * 0.4) * 0.6; lorb();
       const rr = state.v.rr, br = 1 + 0.035 * Math.sin(t * Math.PI * 2 * rr / 60);
       piv.scale.set(br, 1 + (br - 1) * 0.6, br);
-      const stv = { ...ALL_OK, ...scen().organs }.respiratory;
+      const stv = bodyOrgans().respiratory;
       tint.set(stv === 'crit' ? 0xff2236 : stv === 'warn' ? 0xffb020 : 0x000000);
       const k = stv === 'ok' ? 0 : (0.35 + 0.25 * Math.sin(t * 6));
       l.traverse(o => { if (o.isMesh && o.material.emissive) { o.material.emissive.copy(tint).multiplyScalar(k); } });
@@ -694,7 +708,7 @@ function setupMiniViews() {
       if (beatT >= nextBeat) { beatT = 0; nextBeat = sc.irregular ? period * (0.55 + 0.9 * Math.random()) : period; }
       const ph = beatT / period, k = 1 + 0.07 * Math.exp(-((ph - 0.08) ** 2) / 0.003) + 0.03 * Math.exp(-((ph - 0.32) ** 2) / 0.006);
       piv.scale.setScalar(k); piv.rotation.y = Math.sin(t * 0.3) * 0.4; orb();
-      const st = { ...ALL_OK, ...sc.organs }.cardiovascular;
+      const st = bodyOrgans().cardiovascular;
       tint.set(st === 'crit' ? 0xff2236 : st === 'warn' ? 0xffb020 : 0x000000);
       const g = st === 'ok' ? 0 : (0.35 + 0.3 * Math.exp(-((ph - 0.08) ** 2) / 0.004));
       mats.forEach(m => m.emissive.copy(tint).multiplyScalar(g));
@@ -906,12 +920,14 @@ function updateStatusUI() {
   const sc = scen();
   const gsum = gsim.summary, gst = geneStatus(), gflag = Object.values(gst).filter(x => x !== 'ok').length;
   const genLine = gsum && (gsum.careerPct >= 70 || gst.dna !== 'ok') ? `<p class="${gsum.careerPct >= 100 || gst.dna === 'crit' ? 'c' : 'w'}">Genetics: ${Math.round(gsum.dose)} mSv on this mission (${Math.round(gsum.careerPct)}% of NASA career limit) · ${gflag} marker${gflag === 1 ? '' : 's'} flagged.</p>` : '';
-  $('#aiText').innerHTML = sc.ai.map(p => `<p>${p}</p>`).join('') + genLine;
+  const gw = geneOrgans().why;
+  const baseAi = sc.level === 'ok' && gw.length ? ['Vital signs are normal right now.', 'The mission situation set in GENETICS adds long-term risks to watch (below).'] : sc.ai;
+  $('#aiText').innerHTML = baseAi.map(p => `<p>${p}</p>`).join('') + genLine + (gw.length ? `<p class="w">Body effects from GENETICS: ${gw.map(esc).join('; ')}.</p>` : '');
   const key = sc.id + '|' + (sc.src || []).join(',');
   if (updateStatusUI._k !== key) { updateStatusUI._k = key; $('#aiSrc').innerHTML = chips(sc.src); $('#scenSrc').innerHTML = chips(sc.src); }
   renderGenOverview();
-  const ls = { ...ALL_OK, ...sc.organs }.respiratory;
-  const cs = { ...ALL_OK, ...sc.organs }.cardiovascular;
+  const ls = bodyOrgans().respiratory;
+  const cs = bodyOrgans().cardiovascular;
   $('#heartLegend').innerHTML = `Cardiac status: <b style="color:var(--${cs === 'ok' ? 'ok' : cs})">${cs === 'ok' ? 'NOMINAL' : cs === 'warn' ? 'WATCH' : 'ALERT'}</b> · ${Math.round(state.v.hr)} bpm${sc.irregular ? ' · irregular' : ''}`;
   $('#lungLegend').innerHTML = `Lung tissue status: <b style="color:var(--${ls === 'ok' ? 'ok' : ls})">${ls === 'ok' ? 'NOMINAL' : ls === 'warn' ? 'WATCH' : 'ALERT'}</b>`;
   renderGeneList();
@@ -919,7 +935,7 @@ function updateStatusUI() {
 // body scan list: in scan mode, items resolve as the scan line passes their height
 const SCAN_ORDER = { skeletal: 0.15, muscular: 0.35, digestive: 0.55, cardiovascular: 0.7, respiratory: 0.78, neurological: 0.93 };
 function updateScanList() {
-  const st = { ...ALL_OK, ...scen().organs };
+  const st = bodyOrgans();
   const p = state.scanProg;
   $$('#scanList li').forEach(li => {
     const k = li.dataset.s, s = st[k];
@@ -1061,7 +1077,7 @@ function msSync(from) {
 }
 function initMission() {
   $('#msProf').value = $('#gsSit').value;
-  $('#msProf').addEventListener('input', () => { $('#gsSit').value = $('#msProf').value; $('#gsDays').value = SIT[$('#msProf').value].days; ms.day = 1; gsUpdate(); });
+  $('#msProf').addEventListener('input', () => { gsim.touched = true; $('#gsSit').value = $('#msProf').value; $('#gsDays').value = SIT[$('#msProf').value].days; ms.day = 1; gsUpdate(); });
   $('#msFollow').addEventListener('change', () => { msLastScen = null; msRender(); });
   $('#msDay').addEventListener('input', () => { ms.day = +$('#msDay').value; ms.playing = false; $('#msPlay').textContent = '▶'; msRender(); });
   $('#msPlay').onclick = () => { ms.playing = !ms.playing; $('#msPlay').textContent = ms.playing ? '❚❚' : '▶'; if (ms.playing && ms.day >= +$('#msDay').max) ms.day = 0; };
@@ -1098,12 +1114,13 @@ function gsUpdate() {
   const prior = +$('#gsPrior').value, speDose = spe ? +$('#gsSpeDose').value : 0, who = $('#gsWho').value;
   $('#gsDaysV').textContent = days; $('#gsPriorV').textContent = prior + ' mSv'; $('#gsSpeV').textContent = $('#gsSpeDose').value + ' mSv';
   $('#gsSpeRow').style.display = spe ? '' : 'none';
-  lsSet('beyond-horizons:gsim', { sit: sitKey, days, spe, speDose: +$('#gsSpeDose').value, vitA, prior, who });
+  if (gsim.touched === undefined) gsim.touched = !!lsGet('beyond-horizons:gsim', {}).touched;
+  lsSet('beyond-horizons:gsim', { sit: sitKey, days, spe, speDose: +$('#gsSpeDose').value, vitA, prior, who, touched: gsim.touched, body: $('#gsBody')?.checked });
   const shelter = false, speOpen = spe && speDose >= 100;
   const missionDose = sit.rate * days + speDose, lo = (sit.lo ?? sit.rate) * days + speDose, hi = (sit.hi ?? sit.rate) * days + speDose;
   const dose = missionDose, career = prior + missionDose, careerPct = career / 6;
   const band = dose < 100 ? 0 : dose < 300 ? 1 : dose < 600 ? 2 : 3;
-  gsim.summary = { sitKey, label: sit.label, days, dose: missionDose, career, careerPct };
+  gsim.summary = { sitKey, label: sit.label, days, dose: missionDose, career, careerPct, who, spe, body: ($('#gsBody') ? $('#gsBody').checked : true) && gsim.touched };
   const bandTxt = ['LOW', 'MODERATE', 'ELEVATED', 'HIGH'][band], bandCls = ['ok', 'warn', 'warn', 'crit'][band];
   const risk = dose / 1000 * 5;
   const crewP = (gsim.crew || []).find(c => c.id === who);
@@ -1153,7 +1170,7 @@ function gsUpdate() {
     C(gsim.status.immune !== 'ok' || band >= 1, 'warn', 'Inflammation & immune genes', 'Radiation switched on stress-response, immune/inflammation and DNA-repair genes (NAG9-1024); some T-cell activation changes persisted after the Twins mission.', ['nag9_1024', 'twins']) +
     C(careerPct >= 70, careerPct >= 100 ? 'crit' : 'warn', `NASA career limit · ${Math.round(careerPct)}% used`, 'NASA-STD-3001: career spaceflight dose must stay below 600 mSv for every astronaut, set at a 3% mean risk of cancer death; a single solar particle event is limited to 250 mSv.', ['std3001_rad']) +
     C(true, 'ok', 'Countermeasures', `Storm shelter during solar events (protects from solar particles, though cosmic rays are hard to stop). Vitamin A partly reversed the radiation gene signature in the study${vitA ? ' (active)' : ''}. Shorter time in deep space lowers the cumulative dose.`, ['msl_rad', 'nag9_1024']);
-  renderGenOverview(); if (typeof msSync === 'function') msSync('gs');
+  renderGenOverview(); applyOrganStatus(); updateStatusUI(); updateScanList(); if (typeof msSync === 'function') msSync('gs');
   renderGeneList();
 }
 const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1189,10 +1206,11 @@ function gsHow() {
 }
 async function initGeneSim() {
   const saved = lsGet('beyond-horizons:gsim', null);
-  if (saved) { $('#gsSit').value = saved.sit; $('#gsDays').value = saved.days; $('#gsSpe').checked = !!saved.spe; $('#gsSpeDose').value = saved.speDose ?? 50; $('#gsVitA').checked = !!saved.vitA; $('#gsPrior').value = saved.prior ?? 0; }
+  if (saved) { $('#gsSit').value = saved.sit; $('#gsDays').value = saved.days; $('#gsSpe').checked = !!saved.spe; $('#gsSpeDose').value = saved.speDose ?? 50; $('#gsVitA').checked = !!saved.vitA; $('#gsPrior').value = saved.prior ?? 0; if (saved.body === false) $('#gsBody').checked = false; }
   fillWho();
-  ['gsWho', 'gsSit', 'gsDays', 'gsSpe', 'gsSpeDose', 'gsVitA', 'gsPrior'].forEach(id => $('#' + id).addEventListener('input', () => {
+  ['gsWho', 'gsSit', 'gsDays', 'gsSpe', 'gsSpeDose', 'gsVitA', 'gsPrior', 'gsBody'].forEach(id => $('#' + id).addEventListener('input', () => {
     if (id === 'gsSit') $('#gsDays').value = SIT[$('#gsSit').value].days;
+    gsim.touched = true;
     gsUpdate();
   }));
   $('#gsHowBtn').onclick = gsHow;
@@ -1294,6 +1312,7 @@ function applySettings() {
   $('#hdAstro').textContent = String(settings.astronaut).toUpperCase(); $('#hdMission').textContent = String(settings.mission).toUpperCase();
   $('#tCrew').textContent = settings.crew;
   CONFIG.startElapsed = Math.round(+settings.elapsedH * 3600) || 0; state.clock0 = performance.now(); clockTick();
+  if (typeof fillWho === 'function' && $('#gsWho')?.options.length) { const w = $('#gsWho').value; fillWho(); $('#gsWho').value = w; gsUpdate(); }
 }
 function openSettings() {
   const f = $('#cfgForm'); for (const k of Object.keys(DEFAULT_SET)) f.elements[k].value = settings[k];
@@ -1420,7 +1439,7 @@ function orbitable(name, cam, target) {
 }
 function hudSummary() {
   const v = state.v;
-  return { scenario: scen().name, text: `HR ${Math.round(v.hr)} bpm, SpO2 ${Math.round(v.spo2)}%, temp ${v.temp.toFixed(1)} C, BP ${Math.round(v.sys)}/${Math.round(v.dia)}, RR ${Math.round(v.rr)}; overall ${overall()}; flagged systems: ${Object.entries({ ...ALL_OK, ...scen().organs }).filter(([, x]) => x !== 'ok').map(([k, x]) => k + ' ' + x).join(', ') || 'none'}.` };
+  return { scenario: scen().name, text: `HR ${Math.round(v.hr)} bpm, SpO2 ${Math.round(v.spo2)}%, temp ${v.temp.toFixed(1)} C, BP ${Math.round(v.sys)}/${Math.round(v.dia)}, RR ${Math.round(v.rr)}; overall ${overall()}; flagged systems: ${Object.entries(bodyOrgans()).filter(([, x]) => x !== 'ok').map(([k, x]) => k + ' ' + x).join(', ') || 'none'}.` };
 }
 function buildStatic() {
   initSources();
@@ -1455,9 +1474,9 @@ function buildStatic() {
     const sc = scen(), st = vitalStatus();
     const tv = targetV(), val = { hr: `${Math.round(tv.hr)} bpm`, spo2: `${Math.round(tv.spo2)} %`, temp: `${tv.temp.toFixed(1)} °C`, bp: `${Math.round(tv.sys)}/${Math.round(tv.dia)} mmHg`, rr: `${Math.round(tv.rr)} br/min` };
     const flags = sc.flagHtml || Object.entries(st).filter(([, s]) => s !== 'ok').map(([k, s]) => { const R = RANGES[k === 'bp' ? 'sys' : k]; return `<li><b style="color:var(--${s})">${s === 'crit' ? 'ALERT' : 'WATCH'}</b> — ${R.label}: ${val[k]} <small>(normal ${R.ok[0]}–${R.ok[1]} ${R.unit})</small></li>`; }).join('') || '<li>All readings inside normal ranges.</li>';
-    const orgs = Object.entries(sc.organs || {}).map(([k, v]) => `${k === 'digestive' ? 'digestive (GI) tract' : k} (${v === 'crit' ? 'alert' : 'watch'})`);
+    const orgs = Object.entries(bodyOrgans()).filter(([, v]) => v !== 'ok').map(([k, v]) => `${k === 'digestive' ? 'digestive (GI) tract' : k} (${v === 'crit' ? 'alert' : 'watch'})`);
     $('#mdTitle').textContent = 'AI INSIGHTS — ' + sc.name.toUpperCase();
-    $('#mdBody').innerHTML = `<h4>SUMMARY</h4>${(sc.aiDetail || sc.ai.map(p => `<p>${p}</p>`)).join('')}${!sc.aiDetail && orgs.length ? `<p><i>Highlighted on the body scan: ${orgs.join(', ')}.</i></p>` : ''}<h4>FLAGGED READINGS</h4><ul>${flags}</ul><h4>RECOMMENDED ACTIONS</h4><ul>${sc.recs.map(r => `<li>${r}</li>`).join('')}</ul><h4>EVIDENCE</h4><div>${chips(sc.src) || 'General clinical reference ranges.'}</div>`;
+    $('#mdBody').innerHTML = `<h4>SUMMARY</h4>${(sc.aiDetail || sc.ai.map(p => `<p>${p}</p>`)).join('')}${!sc.aiDetail && orgs.length ? `<p><i>Highlighted on the body scan: ${orgs.join(', ')}.</i></p>` : ''}${geneOrgans().why.length ? `<p><b>From your GENETICS situation:</b> ${geneOrgans().why.map(esc).join('; ')}.</p>` : ''}<h4>FLAGGED READINGS</h4><ul>${flags}</ul><h4>RECOMMENDED ACTIONS</h4><ul>${sc.recs.map(r => `<li>${r}</li>`).join('')}</ul><h4>EVIDENCE</h4><div>${chips(sc.src) || 'General clinical reference ranges.'}</div>`;
     $('#modal').classList.remove('hidden');
   };
   $('#modalX').onclick = () => $('#modal').classList.add('hidden');

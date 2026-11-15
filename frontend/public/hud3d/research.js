@@ -1,6 +1,9 @@
 // Beyond Horizons HUD — research tabs linked to the Beyond Horizons API (FastAPI backend)
 // Shares localStorage keys with the Next.js app, so history is common when both run on the same domain.
 
+import { chips } from './sources.js?v=15';
+const REF_SRC = { 'OSD-720': 'osd720', 'GLDS-699': 'osd720', 'AINV00000008': 'lsda_osteo', 'NAG9-1024': 'nag9_1024', 'HRP-BEHAVIORAL-HEALTH': 'hrp_behav', 'HRP-RADIATION-CARCINOGENESIS': 'hrp_carcino', 'HRP-BONE-RISK': 'hrp_bone', 'HRP-MUSCLE-RISK': 'hrp_muscle', 'HRP-EVA-RISK': 'hrp_eva', 'HRP-BEH': 'hrp_behav' };
+const refIds = ref => [...new Set(Object.entries(REF_SRC).filter(([k]) => (ref || '').includes(k)).map(([, v]) => v))];
 const KEYS = {
   vitals: 'beyond-horizons:vitals-history',      // same key + record format as frontend/lib/vitalsStore.ts
   scans: 'beyond-horizons:scan-history',
@@ -486,10 +489,10 @@ function showGraphDetail(hit) {
   const lab = id => gLayout.nodes.find(n => n.id === id)?.label || id;
   if (hit.type === 'node') {
     const n = hit.n, links = gLayout.edges.filter(e => e.source === n.id || e.target === n.id);
-    el.innerHTML = `<h3>${esc(n.label)} <small>${esc(n.category)}</small></h3><p>${esc(n.description)}</p><h4>LINKS</h4><ul>${links.map(e => `<li><b style="color:${LV_COL[e.evidence_level]}">${LV_TXT[e.evidence_level]}</b> — ${esc(lab(e.source))} → ${esc(lab(e.target))}</li>`).join('')}</ul>`;
+    el.innerHTML = `<h3>${esc(n.label)} <small>${esc(n.category)}</small></h3><p>${esc(n.description)}</p><h4>LINKS</h4><ul>${links.map(e => `<li><b style="color:${LV_COL[e.evidence_level]}">${LV_TXT[e.evidence_level]}</b> — ${esc(lab(e.source))} → ${esc(lab(e.target))}</li>`).join('')}</ul>${(() => { const ids = [...new Set(links.flatMap(e => refIds(e.evidence_reference)))]; return ids.length ? `<h4>NASA SOURCES</h4><div class="srcrow">${chips(ids)}</div>` : ''; })()}`;
   } else {
     const e = hit.e;
-    el.innerHTML = `<h3>${esc(lab(e.source))} → ${esc(lab(e.target))}</h3><p><b style="color:${LV_COL[e.evidence_level]}">${LV_TXT[e.evidence_level]}</b> · ${esc(e.relation)} · weight ${e.weight} · uncertainty ${e.uncertainty}</p><p class="ref">Source: ${esc(e.evidence_reference)}</p>${e.limitations?.length ? `<h4>LIMITATIONS</h4><ul>${e.limitations.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}`;
+    el.innerHTML = `<h3>${esc(lab(e.source))} → ${esc(lab(e.target))}</h3><p><b style="color:${LV_COL[e.evidence_level]}">${LV_TXT[e.evidence_level]}</b> · ${esc(e.relation)} · weight ${e.weight} · uncertainty ${e.uncertainty}</p><p class="ref">Source: ${esc(e.evidence_reference)}</p>${refIds(e.evidence_reference).length ? `<div class="srcrow">${chips(refIds(e.evidence_reference))}</div>` : ''}${e.limitations?.length ? `<h4>LIMITATIONS</h4><ul>${e.limitations.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}`;
   }
 }
 

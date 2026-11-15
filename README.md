@@ -99,16 +99,19 @@ Pick the mission profile (shared with the genetics simulator) and move through i
 **Everything follows the selected mission day:** with *Astronaut status follows the mission* on, the Overview scan changes with the mission events (solar storm → solar particle event scenario; exercise-module failure → bone-loss scenario) and with your own scenarios that have a mission day. Click any timeline item to jump to it; the EVA item opens the EVA decision. The Crew Risk chart shows the current mission day and the EVA day as markers.
 
 ### 10. Beyond AI
-An embedded assistant (**ASK BEYOND AI**, or **Ask AI** in the AI Insights panel) that answers questions about the crew, the current scan, your saved vitals and the evidence behind each risk, grounded only in the platform's own data. The conversation is saved in the browser.
+An embedded assistant (**ASK BEYOND AI**, or **Ask AI** in the AI Insights panel) that answers questions about the crew, the current scan, your saved vitals and the evidence behind each risk, grounded in the platform's own data. It answers the question first, in the language you write in, explains what your numbers show and what you can do, responds with care when you are worried (calming steps and the warning signs that need real help), and ends with one short line on the limits (simulated mission data, self-reported vitals, not a doctor). It never invents numbers or citations. The conversation is saved in the browser.
 
 ### 11. Customization
 - Click **MISSION** or **ASTRONAUT** in the header to set the astronaut's name, mission ID, mission phase, crew size and mission elapsed time.
 - **A− / A+** (bottom of the screen) makes the whole interface bigger; the **?** button opens a guide to every tab.
 - Custom scenarios, vitals history, scan log and chat are all saved locally in the browser.
 
-### 12. Linked radiation and clearer AI summary
+### 12. Everything is linked
 - **Habitat radiation follows GENETICS / MISSION**: the RADIATION tile on the Overview uses the situation you choose (ISS 0.2–0.5 mSv/day, deep space 1.8 mSv/day). In the *Solar particle event* scenario it adds the solar-event dose you set in GENETICS. Click the tile to open GENETICS.
 - **Specific AI summary** for your own readings: each flagged value with its number, normal range, what it can mean, which organ is highlighted on the scan and what to do; a warning when several values are out of range together, and a hint when a value looks like a typing mistake.
+- **GENETICS shows on the body**: once you use the GENETICS simulator (with *Show effects on the body scan* on and the astronaut set to you), the situation lights up the body scan — radiation ≥ 100 mSv or a solar event → bone marrow (skeletal) and digestive (GI) watch; 90+ days in weightlessness → bone and muscle watch (NASA HRP: 1–1.5 % bone loss per month); 180+ days → neurological watch (SANS). The AI insights say why.
+- **Your name everywhere**: the astronaut name you set in the header is used in GENETICS, the AI and the reports.
+- **Research sources**: every link of the evidence graph shows its NASA source as a clickable tag (HRP Behavioral Health, Radiation Carcinogenesis, Bone, Muscle, EVA; OSDR OSD-720; NAG9-1024; LSDA osteoblast data).
 - **DIGESTIVE (GI)** label: GI = gastrointestinal tract (stomach and intestines). It is highlighted for radiation (one of the most radiation-sensitive tissues) and for low hydration.
 
 ---
@@ -128,6 +131,9 @@ Every limit, rate and dataset has a clickable green source tag, and the **NASA S
 | Muscle loss | NASA HRP Muscle risk |
 | SANS | NASA HRP Evidence Report: Spaceflight Associated Neuro-ocular Syndrome |
 | Cardiac rhythm | NASA HRP Evidence Report (with the National Academies 2018 caveat) |
+| Cognition, sleep, workload | NASA HRP Behavioral Health risk — Evidence book NTRS 20250001454 |
+| Spacewalk (EVA) risk | NASA HRP Risk of Injury and Compromised Performance due to EVA Operations |
+| Radiation cancer risk | NASA HRP Radiation Carcinogenesis risk; NASA-STD-3001 Vol. 1 career limit 600 mSv (OCHMO-TB-020) |
 | Genomics | NASA Twins Study (Garrett-Bakelman et al. 2019, Science); NASA OSDR OSD-720 / GLDS-699; NAG9-1024; NASA LSDA osteoblast data; GeneLab (Ray et al. 2019) |
 | Vital-sign ranges | AHA / CDC general adult references (labelled as non-NASA) |
 
