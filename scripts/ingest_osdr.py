@@ -7,7 +7,7 @@ Usage (a file you already downloaded):
         --dataset-id OSD-720 \
         --source-url https://osdr.nasa.gov/bio/repo/data/studies/OSD-720 \
         --organism "Mus musculus" --tissue "Left ventricle" \
-        --condition ground_based_simulated_radiation \
+        --condition ground_based_simulated_radiation \  
         --analysis-method "RNA-Seq, GeneLab standard processing (STAR/RSEM)" \
         --limitation "Ground-based simulated radiation, not spaceflight" \
         --limitation "Mouse, not human"
