@@ -8,8 +8,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=11';
-import { chips, initSources } from './sources.js?v=11';
+import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=13';
+import { chips, initSources } from './sources.js?v=13';
 
 /* ============================================================
    CONFIG
@@ -1608,6 +1608,6 @@ async function boot() {
   if (!lsGet('beyond-horizons:seen-guide', false) && !qs.has('tab') && !qs.has('mode')) { $('#helpModal').classList.remove('hidden'); lsSet('beyond-horizons:seen-guide', true); }
   requestAnimationFrame(loop);
   window.__bh = { holo, state, models, CONFIG, setMode, setScenario };
-  setTimeout(() => { document.title = 'done'; }, 1500);
+  setTimeout(() => { document.documentElement.dataset.ready = '1'; }, 1500);
 }
 boot();

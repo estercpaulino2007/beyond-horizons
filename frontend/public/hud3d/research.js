@@ -402,7 +402,8 @@ async function loadResearch() {
     const rg = await apiOr('/api/v1/evidence/graph', undefined, sn => sn.graph); graph = rg.data;
     $('#egErr').innerHTML = rg.snap ? SNAP_NOTE : '';
     layoutGraph(); drawGraph();
-    $('#egLegend').innerHTML = Object.keys(LV_COL).map(k => `<span><i style="background:${LV_COL[k]}"></i>${LV_TXT[k]}</span>`).join('');
+    const cnt = k => gLayout.edges.filter(e => e.evidence_level === k).length;
+    $('#egLegend').innerHTML = `<span><b>${gLayout.nodes.length} factors · ${gLayout.edges.length} links</b></span>` + Object.keys(LV_COL).filter(k => cnt(k)).map(k => `<span><i style="background:${LV_COL[k]}"></i>${LV_TXT[k]} (${cnt(k)})</span>`).join('');
   } catch (e) { errBox($('#egErr'), e, loadResearch); }
   try {
     const rr = await apiOr('/api/v1/research-navigator/rankings', undefined, sn => sn.rankings); const r = rr.data;
@@ -415,38 +416,55 @@ async function loadResearch() {
 }
 function layoutGraph() {
   const nodes = graph.elements.nodes.map(n => n.data), edges = graph.elements.edges.map(e => e.data);
-  // layered layout: depth = longest path from a source node
-  const inc = Object.fromEntries(nodes.map(n => [n.id, 0])); edges.forEach(e => inc[e.target]++);
+  // layered layout: column = longest path from a source node; rows ordered to reduce crossings
   const depth = Object.fromEntries(nodes.map(n => [n.id, 0]));
   for (let it = 0; it < nodes.length; it++) edges.forEach(e => { depth[e.target] = Math.max(depth[e.target], depth[e.source] + 1); });
   const cols = {}; nodes.forEach(n => (cols[depth[n.id]] ||= []).push(n));
-  const nc = Object.keys(cols).length;
+  const keys = Object.keys(cols).map(Number).sort((a, b) => a - b), nc = keys.length, row = {};
+  keys.forEach(c => cols[c].forEach((n, i) => { row[n.id] = i / Math.max(1, cols[c].length - 1); }));
+  for (let pass = 0; pass < 4; pass++) keys.forEach(c => {
+    cols[c].forEach(n => { const nb = edges.filter(e => e.target === n.id || e.source === n.id).map(e => row[e.target === n.id ? e.source : e.target]); n._bc = nb.length ? nb.reduce((a, b) => a + b) / nb.length : row[n.id]; });
+    cols[c].sort((a, b) => a._bc - b._bc).forEach((n, i) => { row[n.id] = i / Math.max(1, cols[c].length - 1); });
+  });
   const pos = {};
-  Object.entries(cols).forEach(([c, list]) => list.forEach((n, i) => { pos[n.id] = { x: (+c + 0.5) / nc, y: (i + 0.5) / list.length }; }));
-  gLayout = { nodes, edges, pos };
+  keys.forEach((c, ci) => cols[c].forEach((n, i) => { pos[n.id] = { x: (ci + 0.5) / nc, y: (i + 0.5) / cols[c].length }; }));
+  gLayout = { nodes, edges, pos, nc };
+}
+function wrapLabel(g, text, maxW) {
+  const words = text.split(' '), lines = []; let cur = '';
+  words.forEach(w => { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; });
+  if (cur) lines.push(cur); return lines;
 }
 function drawGraph() {
   if (!gLayout) return;
   const cv = $('#egCanvas'), [g, W, H, d] = canvasCtx(cv); g.clearRect(0, 0, W, H);
-  const P = id => ({ x: 70 * d + gLayout.pos[id].x * (W - 140 * d), y: 30 * d + gLayout.pos[id].y * (H - 60 * d) });
+  const padX = 12 * d, colW = (W - 2 * padX) / gLayout.nc;
+  const P = id => ({ x: padX + gLayout.pos[id].x * (W - 2 * padX), y: 24 * d + gLayout.pos[id].y * (H - 48 * d) });
   gLayout.screen = { P, d };
+  let fs = 15; g.font = `600 ${fs * d}px Rajdhani`;
+  const maxW = colW - 26 * d, lh = 16 * d;
+  gLayout.nodes.forEach(n => {
+    const lines = wrapLabel(g, n.label, maxW - 16 * d), w = Math.min(maxW, Math.max(...lines.map(l => g.measureText(l).width)) + 18 * d), h = lines.length * lh + 10 * d, p = P(n.id);
+    n._lines = lines; n._box = { x: p.x - w / 2, y: p.y - h / 2, w, h };
+  });
   gLayout.edges.forEach(e => {
-    const a = P(e.source), b = P(e.target), hot = gHover && (gHover.id === e.id || gHover.id === e.source || gHover.id === e.target);
+    const A = gLayout.nodes.find(n => n.id === e.source)._box, B = gLayout.nodes.find(n => n.id === e.target)._box;
+    const a = { x: A.x + A.w, y: A.y + A.h / 2 }, b = { x: B.x - 2 * d, y: B.y + B.h / 2 };
+    const hot = gHover && (gHover.id === e.id || gHover.id === e.source || gHover.id === e.target);
     g.strokeStyle = LV_COL[e.evidence_level] || '#888'; g.globalAlpha = gHover && !hot ? 0.2 : 0.9;
     g.lineWidth = (1 + e.weight * 3) * d; g.setLineDash(e.evidence_level === 'exploratory_hypothesis' || e.evidence_level === 'synthetic_parameter' ? [6 * d, 5 * d] : []);
-    g.beginPath(); g.moveTo(a.x, a.y); const mx = (a.x + b.x) / 2; g.bezierCurveTo(mx, a.y, mx, b.y, b.x, b.y); g.stroke();
-    const ang = Math.atan2(b.y - a.y, b.x - mx); g.setLineDash([]); g.fillStyle = g.strokeStyle;
-    g.beginPath(); g.moveTo(b.x - 14 * d, b.y); g.lineTo(b.x - 24 * d, b.y - 5 * d); g.lineTo(b.x - 24 * d, b.y + 5 * d); g.fill();
+    const mx = (a.x + b.x) / 2;
+    g.beginPath(); g.moveTo(a.x, a.y); g.bezierCurveTo(mx, a.y, mx, b.y, b.x - 8 * d, b.y); g.stroke();
+    g.setLineDash([]); g.fillStyle = g.strokeStyle;
+    g.beginPath(); g.moveTo(b.x, b.y); g.lineTo(b.x - 10 * d, b.y - 5 * d); g.lineTo(b.x - 10 * d, b.y + 5 * d); g.fill();
+    e._a = a; e._b = b;
   });
-  g.globalAlpha = 1; g.setLineDash([]);
-  g.font = `600 ${14 * d}px Rajdhani`; g.textAlign = 'center';
+  g.globalAlpha = 1; g.textAlign = 'center';
   gLayout.nodes.forEach(n => {
-    const p = P(n.id), hot = gHover && gHover.id === n.id;
-    g.fillStyle = hot ? 'rgba(57,198,255,0.45)' : 'rgba(6,26,56,0.92)'; g.strokeStyle = '#39c6ff'; g.lineWidth = 1.5 * d;
-    const w = g.measureText(n.label).width + 20 * d, h = 26 * d;
-    g.beginPath(); g.roundRect(p.x - w / 2, p.y - h / 2, w, h, 5 * d); g.fill(); g.stroke();
-    g.fillStyle = '#eaf6ff'; g.fillText(n.label, p.x, p.y + 5 * d);
-    n._box = { x: p.x - w / 2, y: p.y - h / 2, w, h };
+    const b = n._box, hot = gHover && gHover.id === n.id;
+    g.fillStyle = hot ? 'rgba(57,198,255,0.45)' : 'rgba(6,26,56,0.95)'; g.strokeStyle = '#39c6ff'; g.lineWidth = 1.5 * d;
+    g.beginPath(); g.roundRect(b.x, b.y, b.w, b.h, 5 * d); g.fill(); g.stroke();
+    g.fillStyle = '#eaf6ff'; n._lines.forEach((l, i) => g.fillText(l, b.x + b.w / 2, b.y + 5 * d + lh * (i + 0.78)));
   });
 }
 function graphHit(ev) {
@@ -456,7 +474,7 @@ function graphHit(ev) {
   for (const n of gLayout.nodes) { const b = n._box; if (b && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return { type: 'node', id: n.id, n }; }
   let best = null, bd = 12 * d;
   for (const e of gLayout.edges) {
-    const a = gLayout.screen.P(e.source), b = gLayout.screen.P(e.target);
+    const a = e._a || gLayout.screen.P(e.source), b = e._b || gLayout.screen.P(e.target);
     for (let t = 0; t <= 1; t += 0.05) { const mx = (a.x + b.x) / 2, u = 1 - t;
       const px = u * u * u * a.x + 3 * u * u * t * mx + 3 * u * t * t * mx + t * t * t * b.x, py = u * u * u * a.y + 3 * u * u * t * a.y + 3 * u * t * t * b.y + t * t * t * b.y;
       const dd = Math.hypot(px - x, py - y); if (dd < bd) { bd = dd; best = { type: 'edge', id: e.id, e }; } }
