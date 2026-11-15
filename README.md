@@ -305,6 +305,7 @@ Built by the Beyond Horizons team for the NASA Space Apps Challenge 2026.
 | [Angiology](https://sketchfab.com/3d-models/angiology-0caae8f894cc40b69f3f78adf14b9665) | Z-Anatomy | CC-BY-SA 4.0 | `vessels.glb`, `heart.glb` |
 | [Realistic Human Lungs](https://sketchfab.com/3d-models/realistic-human-lungs-ce09f4099a68467880f46e61eb9a3531) | neshallads | CC-BY 4.0 | `lungs.glb` |
 | [Blue Brain](https://sketchfab.com/3d-models/blue-brain-013fbf81a4aa49eba1be3a817e2b7a83) | nigachad101 | CC-BY 4.0 | `brain.glb` |
+| [Brain hologram](https://sketchfab.com/3d-models/brain-hologram-09d686a1a1f745cba6b2385d0c831214) | oxterium | Sketchfab Standard | `brain-holo.glb` |
 | [DNA Double Helix](https://sketchfab.com/3d-models/dna-double-helix-224d09f75a674f4a8107e79e3d3d5552) | uuon | CC-BY 4.0 | `dna.glb` |
 | [Earth](https://sketchfab.com/3d-models/earth-5f9c35be31a047928eace8b415a8ee3a) | AirStudios | CC-BY 4.0 | `earth.glb` |
 | [MARS the red planet (FREE)](https://sketchfab.com/3d-models/mars-the-red-planet-free-7cf3b31ca60f45cc8e52f7fa863ad09a) | DURVESH123 | CC-BY 4.0 | `mars.glb` |
