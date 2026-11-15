@@ -306,6 +306,14 @@ The following third-party 3D assets were incorporated into Beyond Horizons:
   Licence: Creative Commons Attribution (CC BY).
   Source: https://sketchfab.com/3d-models/animated-floating-astronaut-in-space-suit-loop-e2c4b146e58141e4b87917456a9970b1
   Modifications: Optimized for web display and adapted with holographic visual effects in Beyond Horizons.
+ 
+  - “DNA Double Helix” by UUON Foundation (@uuon_foundation).
+  Licence: Creative Commons Attribution (CC BY).
+  Source: https://sketchfab.com/3d-models/dna-double-helix-224d09f75a674f4a8107e79e3d3d5552
+  
+  - “Realistic Human Lungs” by neshallads.
+  Licence: Creative Commons Attribution (CC BY).
+  Source: https://sketchfab.com/3d-models/realistic-human-lungs-ce09f4099a68467880f46e61eb9a3531
 
 Please refer to each source page for the applicable licence version,
 full terms and original attribution notices.
