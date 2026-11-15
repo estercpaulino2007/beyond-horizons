@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
 # Beyond Horizons -- one-command local start.
 #
 # Usage:
