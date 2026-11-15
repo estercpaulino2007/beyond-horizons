@@ -284,6 +284,9 @@ The HUD alone can also be served without the backend: `cd frontend/public/hud3d 
 - Several datasets come from ground-based or animal studies (labelled as such in the SOURCES panel).
 - See [`docs/limitations.md`](docs/limitations.md) for the full list.
 
+## Recommended Viewing
+For the best experience with the interactive 3D dashboard, use a desktop or laptop browser.
+
 ## Credits
 Built by the Beyond Horizons team for the NASA Space Apps Challenge 2026. 3D models (astronaut, anatomy, heart, brain, DNA, Earth, Mars, ISS interior photogrammetry, starfield) are used under their respective licences 
 ### 3D Assets and Credits
