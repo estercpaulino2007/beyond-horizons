@@ -8,7 +8,7 @@ Usage:
 Output goes to data/processed/ by default, which is gitignored (see
 docs/reproducibility.md): this is a *derived* artifact, fully reproducible
 from the seed and the engine, not source data -- regenerate it rather than
-hand-editing or committing it.
+hand-editing or committing it.  
 """
 
 from __future__ import annotations
