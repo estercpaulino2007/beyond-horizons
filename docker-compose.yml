@@ -1,4 +1,4 @@
-# Local development stack: PostgreSQL + API + web UI.
+# Local development stack: PostgreSQL + API + web UI. 
 # Every variable has a default, so `docker compose up --build` works without a .env file.
 services:
   db:
