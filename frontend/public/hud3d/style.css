@@ -622,3 +622,9 @@ html.zoomed,html.zoomed body{overflow:auto}
 .scen-prev b{font-family:Orbitron;letter-spacing:1px;margin-right:6px}.scen-prev b.ok{color:#2dff8a}.scen-prev b.warn{color:#ffb020}.scen-prev b.crit{color:#ff3b4e}
 .sub small{font-family:Rajdhani,sans-serif;letter-spacing:0;color:var(--dim);font-size:13px}
 .gs-body{margin:2px 0 6px}.gs-body b{font-size:14px}.gs-body small{font-size:12px}
+.ced-you{display:flex;gap:18px;align-items:center;padding:4px 22px 8px;border-bottom:1px solid rgba(70,175,255,.2);margin-bottom:6px}
+.ced-you .chk b{font-size:15px}.ced-you .chk small{font-size:13px}
+.ced-seat{display:flex;align-items:center;gap:8px;font-size:14px}.ced-seat select{min-width:300px}
+.ced.me{box-shadow:0 0 0 1px #2dff8a inset}.ced-name:disabled{opacity:.85;border-color:#2dff8a}
+.crew.me{box-shadow:0 0 0 1px rgba(45,255,138,.6) inset}
+.you-tag{font-size:11px;letter-spacing:1px;border:1px solid #2dff8a;color:#2dff8a;padding:1px 6px;border-radius:3px;vertical-align:middle}

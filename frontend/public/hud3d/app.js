@@ -8,8 +8,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=15';
-import { chips, initSources } from './sources.js?v=15';
+import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=16';
+import { chips, initSources } from './sources.js?v=16';
 
 /* ============================================================
    CONFIG
@@ -1176,7 +1176,7 @@ function gsUpdate() {
 const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function fillWho() {
   const sel = $('#gsWho'), cur = sel.value || lsGet('beyond-horizons:gsim', {}).who || 'you';
-  sel.innerHTML = `<option value="you">${esc(settings.astronaut)} (you)</option>` + (gsim.crew || []).map(c => `<option value="${esc(c.id)}">${esc(c.display_name)} · ${esc(c.role)}</option>`).join('');
+  sel.innerHTML = `<option value="you">${esc(settings.astronaut)} (you)</option>` + (gsim.crew || []).filter(c => !c.you).map(c => `<option value="${esc(c.id)}">${esc(c.display_name)} · ${esc(c.role)}</option>`).join('');
   sel.value = [...sel.options].some(o => o.value === cur) ? cur : 'you';
 }
 function renderGenOverview() {
@@ -1312,6 +1312,7 @@ function applySettings() {
   $('#hdAstro').textContent = String(settings.astronaut).toUpperCase(); $('#hdMission').textContent = String(settings.mission).toUpperCase();
   $('#tCrew').textContent = settings.crew;
   CONFIG.startElapsed = Math.round(+settings.elapsedH * 3600) || 0; state.clock0 = performance.now(); clockTick();
+  window.dispatchEvent(new CustomEvent('beyond-horizons:name-changed'));
   if (typeof fillWho === 'function' && $('#gsWho')?.options.length) { const w = $('#gsWho').value; fillWho(); $('#gsWho').value = w; gsUpdate(); }
 }
 function openSettings() {
@@ -1465,7 +1466,7 @@ function buildStatic() {
   { const rt = $('.etile[data-e="rad"]'); rt.style.cursor = 'pointer'; rt.title = 'Radiation follows the situation and solar-event dose chosen in GENETICS — click to change'; rt.onclick = () => goTab('genetics'); }
   $('#scenForm').addEventListener('input', scenPreview); $('#scenForm').addEventListener('change', scenPreview);
   window.BH = { mission: () => { const key = $('#msProf').value, days = +$('#msDay').max; return { key, day: Math.min(ms.day, days), days }; },
-    scenario: () => SCENARIOS[state.scen], goTab, goDay: (d, key) => { if (key && $('#msProf').value !== key) { $('#msProf').value = key; $('#msProf').dispatchEvent(new Event('input')); } ms.day = d; msRender(); goTab('mission'); } };
+    scenario: () => SCENARIOS[state.scen], goTab, astronaut: () => settings.astronaut, goDay: (d, key) => { if (key && $('#msProf').value !== key) { $('#msProf').value = key; $('#msProf').dispatchEvent(new Event('input')); } ms.day = d; msRender(); goTab('mission'); } };
   $$('[data-close]').forEach(b => b.onclick = () => $('#' + b.dataset.close).classList.add('hidden'));
   ['cfgModal', 'scenModal'].forEach(id => $('#' + id).addEventListener('click', e => { if (e.target.id === id) e.target.classList.add('hidden'); }));
   rebuildScenarioList();

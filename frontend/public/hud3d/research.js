@@ -1,7 +1,7 @@
 // Beyond Horizons HUD — research tabs linked to the Beyond Horizons API (FastAPI backend)
 // Shares localStorage keys with the Next.js app, so history is common when both run on the same domain.
 
-import { chips } from './sources.js?v=15';
+import { chips } from './sources.js?v=16';
 const REF_SRC = { 'OSD-720': 'osd720', 'GLDS-699': 'osd720', 'AINV00000008': 'lsda_osteo', 'NAG9-1024': 'nag9_1024', 'HRP-BEHAVIORAL-HEALTH': 'hrp_behav', 'HRP-RADIATION-CARCINOGENESIS': 'hrp_carcino', 'HRP-BONE-RISK': 'hrp_bone', 'HRP-MUSCLE-RISK': 'hrp_muscle', 'HRP-EVA-RISK': 'hrp_eva', 'HRP-BEH': 'hrp_behav' };
 const refIds = ref => [...new Set(Object.entries(REF_SRC).filter(([k]) => (ref || '').includes(k)).map(([, v]) => v))];
 const KEYS = {
@@ -239,12 +239,27 @@ const CREW_KEY = 'beyond-horizons:crew-custom', EVT_KEY = 'beyond-horizons:crew-
 const TRAITS = [['radiation_sensitivity', 'Radiation sensitivity', 'higher = more affected by radiation'], ['bone_loss_susceptibility', 'Bone-loss susceptibility', 'higher = loses bone faster'], ['sleep_resilience', 'Sleep resilience', 'higher = copes better with little sleep'], ['muscle_recovery', 'Muscle recovery', 'higher = recovers faster'], ['cognitive_resilience', 'Cognitive resilience', 'higher = keeps focus under load'], ['inflammatory_baseline', 'Inflammatory baseline', 'higher = more inflammation at rest']];
 let missionSeed = null;
 async function getSeed() { if (!missionSeed) missionSeed = (await apiOr('/api/v1/missions/ares-180', undefined, sn => sn.mission)).data; return missionSeed; }
-export function crewCustom() { return lsGet(CREW_KEY, {}); }
+const YOU_KEY = 'beyond-horizons:crew-you';
+export function crewYou() { return { on: true, seat: 'atlas', ...lsGet(YOU_KEY, {}) }; }
+const myName = () => String(window.BH?.astronaut?.() || 'You');
+// saved custom crew, plus "you" taking one crew seat with your own name
+export function crewCustom() {
+  const cc = { ...lsGet(CREW_KEY, {}) }, y = crewYou();
+  if (y.on) cc[y.seat] = { ...(cc[y.seat] || {}), display_name: myName(), you: true };
+  return cc;
+}
 export function applyCrewCustom(profiles) {
   const cc = crewCustom();
-  return (profiles || []).map(p => { const c = cc[p.id]; return c ? { ...p, display_name: c.display_name || p.display_name, baseline: { ...p.baseline, ...(c.baseline || {}) } } : p; });
+  return (profiles || []).map(p => { const c = cc[p.id]; return c ? { ...p, display_name: c.display_name || p.display_name, you: !!c.you, baseline: { ...p.baseline, ...(c.baseline || {}) } } : p; });
 }
-function crewIsDefault() { return !Object.keys(crewCustom()).length; }
+// traits changed (needs the live engine); names alone are applied in the browser
+function crewIsDefault() { return !Object.values(lsGet(CREW_KEY, {})).some(c => c.baseline && Object.keys(c.baseline).length); }
+function applyCrewNames(d) {
+  if (!d) return d; const cc = crewCustom();
+  d.trajectories.forEach(t => { const c = cc[t.crew_id]; if (c?.display_name) t.display_name = c.display_name; t.you = !!c?.you; });
+  (d.crew_profiles || []).forEach(p => { const c = cc[p.id]; if (c?.display_name) p.display_name = c.display_name; });
+  return d;
+}
 async function renderEvents() {
   const seed = await getSeed().catch(() => null), saved = lsGet(EVT_KEY, null);
   const evs = seed?.events || [];
@@ -253,10 +268,15 @@ async function renderEvents() {
 }
 async function openCrewEditor() {
   const seed = await getSeed().catch(() => null); if (!seed) { toast('Crew data unavailable.'); return; }
-  const cc = crewCustom();
+  const cc = crewCustom(), y = crewYou();
+  $('#crewEdYou').innerHTML = `<label class="chk"><input type="checkbox" id="ceYouOn" ${y.on ? 'checked' : ''}><span><b>Put me in the crew — ${esc(myName())}</b><small>you take one crew seat and see your own risk (your name comes from ASTRONAUT in the header)</small></span></label>
+    <label class="fld ced-seat"><span>Seat</span><select id="ceYouSeat" class="hud-sel">${seed.crew_profiles.map(p => `<option value="${esc(p.id)}" ${p.id === y.seat ? 'selected' : ''}>${esc(p.role)} (instead of ${esc(p.display_name)})</option>`).join('')}</select></label>`;
+  const syncYou = () => { const on = $('#ceYouOn').checked, seat = $('#ceYouSeat').value;
+    $$('#crewEdBody .ced').forEach(el => { const inp = el.querySelector('.ced-name'), me = on && el.dataset.id === seat; inp.disabled = me; el.classList.toggle('me', me); if (me) inp.value = myName(); else if (inp.dataset.orig) inp.value = inp.dataset.orig; }); };
+  setTimeout(() => { $('#ceYouOn').onchange = syncYou; $('#ceYouSeat').onchange = syncYou; syncYou(); });
   $('#crewEdBody').innerHTML = seed.crew_profiles.map((p, i) => {
     const c = cc[p.id] || {}, b = { ...p.baseline, ...(c.baseline || {}) };
-    return `<div class="ced" data-id="${esc(p.id)}" style="--c:${CREW_COL[i % 4]}"><div class="ced-h"><input class="ced-name" maxlength="40" value="${esc(c.display_name || p.display_name)}"><span>${esc(p.role)}</span></div>
+    return `<div class="ced" data-id="${esc(p.id)}" style="--c:${CREW_COL[i % 4]}"><div class="ced-h"><input class="ced-name" maxlength="40" value="${esc(c.you ? (lsGet(CREW_KEY, {})[p.id]?.display_name || p.display_name) : (c.display_name || p.display_name))}" data-orig="${esc(lsGet(CREW_KEY, {})[p.id]?.display_name || p.display_name)}"><span>${esc(p.role)}</span></div>
       ${TRAITS.map(([k, l, h]) => `<label class="ced-t" title="${h}"><span>${l}</span><input type="range" min="0" max="1" step="0.01" data-k="${k}" value="${b[k]}"><b>${(+b[k]).toFixed(2)}</b></label>`).join('')}</div>`;
   }).join('');
   $$('#crewEdBody input[type=range]').forEach(r => r.oninput = () => { r.nextElementSibling.textContent = (+r.value).toFixed(2); });
@@ -264,8 +284,9 @@ async function openCrewEditor() {
 }
 async function saveCrewEditor() {
   const seed = await getSeed(), out = {};
+  lsSet(YOU_KEY, { on: $('#ceYouOn').checked, seat: $('#ceYouSeat').value });
   $$('#crewEdBody .ced').forEach(el => {
-    const p = seed.crew_profiles.find(x => x.id === el.dataset.id), name = el.querySelector('.ced-name').value.trim(), base = {};
+    const p = seed.crew_profiles.find(x => x.id === el.dataset.id), inp = el.querySelector('.ced-name'), name = (inp.disabled ? inp.dataset.orig : inp.value).trim(), base = {};
     el.querySelectorAll('input[type=range]').forEach(r => { const v = +(+r.value).toFixed(2); if (Math.abs(v - p.baseline[r.dataset.k]) > 0.001) base[r.dataset.k] = v; });
     if ((name && name !== p.display_name) || Object.keys(base).length) out[p.id] = { ...(name && name !== p.display_name ? { display_name: name } : {}), baseline: base };
   });
@@ -279,15 +300,15 @@ async function runCrewSim() {
   const body = { mission_id: 'ares-180', countermeasures: (catalog || []).filter(c => $(`#cmList input[value="${c.id}"]`)?.checked) };
   const dest = $('#simDest').value, dur = +$('#simDur').value, delay = +$('#simDelay').value;
   body.mission_overrides = { destination: dest, duration_days: dur, communication_delay_minutes: delay };
-  const cc = crewCustom(); body.crew_overrides = Object.entries(cc).map(([id, c]) => ({ id, ...c }));
+  const cc = crewCustom(); body.crew_overrides = Object.entries(cc).map(([id, c]) => ({ id, display_name: c.display_name, ...(c.baseline && Object.keys(c.baseline).length ? { baseline: c.baseline } : {}) }));
   const evIn = $$('#evList input'), evOn = evIn.filter(x => x.checked).map(x => x.value);
   if (evIn.length && evOn.length !== evIn.length) body.active_event_ids = evOn;
   try {
     const isDefault = dest === 'mars_transit' && dur === 180 && delay === 22 && crewIsDefault() && !body.active_event_ids;
     const key = body.countermeasures.map(c => c.id).sort().join('|');
     const r = await apiOr('/api/v1/simulations/run', body, sn => sn.sims[key]);
-    simData = r.data;
-    $('#crewErr').innerHTML = r.snap ? SNAP_NOTE + (isDefault ? '' : '<div class="snap-note warn">Your custom crew, events, destination or duration run on the live simulation engine (data link). It is offline right now, so this shows the default Ares-180 crew with your countermeasures.</div>') : '';
+    simData = applyCrewNames(r.snap ? JSON.parse(JSON.stringify(r.data)) : r.data);
+    $('#crewErr').innerHTML = r.snap ? SNAP_NOTE + (isDefault ? '' : '<div class="snap-note warn">Your crew traits, events, destination or duration run on the live simulation engine (data link). It is offline right now, so this shows the default Ares-180 traits with your countermeasures (names are yours).</div>') : '';
     drawCrewChart(); renderCrewCards(); drawBands();
   } catch (e) { errBox($('#crewErr'), e, runCrewSim); $('#crewCards').innerHTML = ''; }
   out.dataset.ready = '1';
@@ -315,7 +336,7 @@ function drawCrewChart() {
     g.strokeStyle = CREW_COL[i % 4]; g.lineWidth = 2.4 * d; g.shadowColor = CREW_COL[i % 4]; g.shadowBlur = 6; g.stroke(); g.shadowBlur = 0;
     t.vulnerability_windows.forEach(w => { g.fillStyle = w.severity === 'critical' ? 'rgba(255,59,78,0.5)' : 'rgba(255,176,32,0.45)'; g.fillRect(X(w.day_start), H - B + 4 * d + i * 5 * d, Math.max(2, X(w.day_end) - X(w.day_start)), 4 * d); });
   });
-  $('#crewLegend').innerHTML = simData.trajectories.map((t, i) => `<span><i style="background:${CREW_COL[i % 4]}"></i>${esc(t.display_name)}</span>`).join('') + '<span class="note-inline">bars under the axis = vulnerability windows</span>';
+  $('#crewLegend').innerHTML = simData.trajectories.map((t, i) => `<span><i style="background:${CREW_COL[i % 4]}"></i>${esc(t.display_name)}${t.you ? ' (you)' : ''}</span>`).join('') + '<span class="note-inline">bars under the axis = vulnerability windows</span>';
 }
 function drawBands() {
   if (!simData) return;
@@ -329,7 +350,7 @@ function renderCrewCards() {
   const prof = Object.fromEntries((simData.crew_profiles || []).map(p => [p.id, p]));
   $('#crewCards').innerHTML = simData.trajectories.map((t, i) => {
     const p = prof[t.crew_id] || {}, peak = t.risk_results.reduce((a, r) => r.scores.operational_risk > a.scores.operational_risk ? r : a, t.risk_results[0]);
-    return `<div class="crew" style="--c:${CREW_COL[i % 4]}"><h3>${esc(t.display_name)} <small>${esc(p.role || '')}</small></h3>
+    return `<div class="crew${t.you ? ' me' : ''}" style="--c:${CREW_COL[i % 4]}"><h3>${esc(t.display_name)}${t.you ? ' <span class="you-tag">YOU</span>' : ''} <small>${esc(p.role || '')}</small></h3>
       <p>${esc(p.primary_vulnerability || '')}</p>
       <div class="kv"><span>Peak operational risk</span><b class="${ST_CLS[peak.band]}">${pct(peak.scores.operational_risk)} · D${peak.day}</b></div>
       <div class="kv"><span>Top drivers</span><b>${peak.top_drivers.slice(0, 2).map(x => esc(x.name)).join(', ')}</b></div>
@@ -577,7 +598,7 @@ export function initResearch(c) {
   $('#runSim').onclick = runCrewSim;
   $('#editCrew').onclick = openCrewEditor;
   $('#crewEdSave').onclick = saveCrewEditor;
-  $('#crewEdReset').onclick = () => { lsSet(CREW_KEY, {}); openCrewEditor(); window.dispatchEvent(new CustomEvent('beyond-horizons:crew-changed')); };
+  $('#crewEdReset').onclick = () => { lsSet(CREW_KEY, {}); lsSet(YOU_KEY, {}); openCrewEditor(); window.dispatchEvent(new CustomEvent('beyond-horizons:crew-changed')); };
   $('#crewEdModal').addEventListener('click', e => { if (e.target.id === 'crewEdModal') e.target.classList.add('hidden'); });
   const cv = $('#egCanvas');
   cv.onmousemove = e => { const h = graphHit(e); const id = h?.id || null; if (id !== gHover?.id) { gHover = h; drawGraph(); } cv.style.cursor = h ? 'pointer' : 'default'; };
@@ -601,3 +622,9 @@ export function initResearch(c) {
 export async function getGenesData() { return (await apiOr('/api/v1/evidence/gene-expression', undefined, sn => sn.genes)).data; }
 export async function getMissionData() { const d = await getSeed(); return { ...d, crew_profiles: applyCrewCustom(d.crew_profiles) }; }
 addEventListener('beyond-horizons:mission-day', () => { if ($('#view-crew')?.classList.contains('active')) drawCrewChart(); });
+
+addEventListener('beyond-horizons:name-changed', () => {
+  if (simData) { applyCrewNames(simData); drawCrewChart(); renderCrewCards(); drawBands(); }
+  loaded.eva = 0; if ($('#view-eva')?.classList.contains('active')) { loaded.eva = 1; loadEva(); }
+  window.dispatchEvent(new CustomEvent('beyond-horizons:crew-changed'));
+});

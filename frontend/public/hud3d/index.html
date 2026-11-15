@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Beyond Horizons — Space Health Monitoring System</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2244%22 fill=%22%2303204f%22 stroke=%22%235fd4ff%22 stroke-width=%224%22/%3E%3Ctext x=%2250%22 y=%2262%22 text-anchor=%22middle%22 font-size=%2234%22 font-family=%22sans-serif%22 font-weight=%22bold%22 fill=%22white%22%3EBH%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="style.css?v=15">
+<link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 
@@ -385,6 +385,7 @@
     <button class="modal-x" data-close="crewEdModal">✕</button>
     <h2>EDIT CREW</h2>
     <p class="note">Rename each crew member and set their traits (0 = low, 1 = high). These are the simulation's synthetic baseline parameters, not real measurements. The crew is also used by the Genetics simulator.</p>
+    <div id="crewEdYou" class="ced-you"></div>
     <div class="scroll scen-body" id="crewEdBody"></div>
     <div class="vbtns"><button class="hud-btn" id="crewEdReset">RESET TO DEFAULT CREW</button><button class="hud-btn primary" id="crewEdSave">SAVE &amp; RUN SIMULATION</button></div>
   </div>
@@ -413,7 +414,7 @@
         <div><h4>BIOMETRICS</h4><p>Beating 3D heart and breathing lungs coloured by status, trends of the mission feed or of <b>your own</b> saved history, and the reference ranges used.</p></div>
         <div><h4>MY VITALS</h4><p>Enter your own readings. They are evaluated, saved to your history, charted over time and can be shown on the hologram. Export/import your history as a file.</p></div>
         <div><h4>GENETICS</h4><p>Choose a situation (ISS, one year in space, Mars transit), days, a solar event and countermeasures: see the radiation dose, which genes change and by how much (published NASA-funded data), the consequences NASA found, and the affected markers lighting up on the DNA. With <b>Show effects on the body scan</b> on, your situation also lights up the astronaut: radiation → bone marrow and GI, long stays → bone, muscle and brain (SANS).</p></div>
-        <div><h4>CREW RISK</h4><p>Simulates a 4-person, 180-day Mars-transit crew day by day. Click <b>EDIT CREW</b> to rename the crew and set their 6 traits, turn mission events on/off, choose destination, duration and countermeasures, and see who is at risk, when and why. Dashed lines mark the current mission day and the EVA day.</p></div>
+        <div><h4>CREW RISK</h4><p>Simulates a 4-person, 180-day Mars-transit crew day by day. You are in the crew with your own name (one seat, changeable). Click <b>EDIT CREW</b> to choose your seat, rename the others and set their 6 traits, turn mission events on/off, choose destination, duration and countermeasures, and see who is at risk, when and why. Dashed lines mark the current mission day and the EVA day.</p></div>
         <div><h4>EVA DECISION</h4><p>An EVA is a spacewalk. On day 145 one is planned just after a solar storm (day 143). Option A: keep it; B: delay 10 days; C: give it to a rested crew member. The tab compares their success chance and risks, and four roles debate which to pick. The <b>MISSION LINK</b> box shows how many days until the spacewalk, each crew member's risk on day 145 (your crew) and whether the astronaut on the Overview is <b>GO / CAUTION / NO-GO</b>.</p></div>
         <div><h4>RESEARCH</h4><p>Evidence graph: how radiation, microgravity, sleep and workload lead to risk, with each link labelled by how strong its evidence is (14 factors, 13 links). Click a box or a line to see its source and limitations. Plus the next experiments worth doing.</p></div>
         <div><h4>MISSION</h4><p>Choose a mission profile and move day by day (or press play): the ship moves in 3D and you see the phase, the radiation received so far against NASA's career limit, and the events. Click a timeline item to jump to that day. With <b>Astronaut status follows the mission</b> on, events change the Overview scan (solar storm → radiation, exercise failure → bone loss) and your own scenarios apply on their day.</p></div>
@@ -508,8 +509,8 @@
   </div>
 </div>
 
-<script src="config.js?v=15"></script>
+<script src="config.js?v=16"></script>
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}</script>
-<script type="module" src="app.js?v=15"></script>
+<script type="module" src="app.js?v=16"></script>
 </body>
 </html>

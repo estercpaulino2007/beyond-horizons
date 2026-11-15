@@ -5,7 +5,7 @@
 An astronaut health-monitoring console and explainable **crew digital twin**, built for the **NASA Space Apps Challenge 2026** challenge *"Create Health Monitoring Software for Astronauts on Space Missions"*. It watches a crew member's vital signs, the habitat environment and long-term spaceflight risks, shows **where in the body** a problem is on a 3D hologram, simulates a whole crew on a Mars mission, and explains every result with its NASA evidence, uncertainty and limitations.
 
 - **Live site (this repository, Vercel):** https://beyond-horizons-ruddy.vercel.app/ — opens on the **3D Health HUD**
-- **HUD on GitHub Pages:** https://estercpaulino2007.github.io/beyond-horizons-/
+- **HUD on GitHub Pages (this repository):** https://estercpaulino2007.github.io/beyond-horizons/ — published from `frontend/public/hud3d` by `.github/workflows/hud-pages.yml`
 
 > **Disclaimer.** Beyond Horizons is an astronaut health-monitoring and mission-simulation platform (research prototype). Mission readings and crew profiles are synthetic or simulated and are labelled **SIMULATED** / **SYNTHETIC** everywhere in the interface. NASA standards, measurements and datasets set the limits, rates and evidence behind them. It does not provide medical advice, should not be used for real mission planning or health decisions, and does not replace a flight surgeon.
 >
@@ -64,6 +64,7 @@ Built-in scenarios (keys `1`–`7`), each tied to NASA references:
 
 ### 5. Crew Risk — Ares-180 simulation (customizable)
 Runs the platform's simulation engine for the four crew members of the 180-day Ares-180 Mars-transit mission, day by day.
+- **You in the crew**: by default you take one crew seat (Mission Specialist; choose another in EDIT CREW) under the astronaut name you set in the header, so you see your own daily risk, peak, drivers and vulnerability windows, also on day 145 in the EVA tab. Uncheck *Put me in the crew* to use the original crew.
 - **Edit the crew**: rename each member and set their six traits — radiation sensitivity, bone-loss susceptibility, sleep resilience, muscle recovery, cognitive resilience, inflammatory baseline (sent to the engine as `crew_overrides`). Your crew is saved and is also used by the Genetics simulator.
 - **Mission**: destination, duration, communication delay.
 - **Events**: switch on/off the scripted events — solar particle event (day 143), exercise-module failure (days 143–154), 22-minute communication delay, critical EVA (day 145).
@@ -207,6 +208,8 @@ curl http://localhost:8000/api/v1/evidence/graph
 | **Vercel** (this repo) | `NEXT_PUBLIC_API_BASE_URL` | Address of the Render backend, no slash at the end |
 | **Render** (backend) | `CORS_ORIGINS` | Comma-separated origins, must include `https://estercpaulino2007.github.io` for the GitHub Pages copy |
 | **Render** | `ASSISTANT_API_KEY` (and provider settings, see `.env.example`) | Needed only for Beyond AI |
+
+**GitHub Pages:** the workflow `.github/workflows/hud-pages.yml` publishes `frontend/public/hud3d` to https://estercpaulino2007.github.io/beyond-horizons/ on every push that changes the HUD (one-time setup: Settings → Pages → Source: *GitHub Actions*). That copy reaches the API through the Vercel app's `/bh-api` proxy, so Render's `CORS_ORIGINS` must include `https://estercpaulino2007.github.io`.
 
 The HUD inside this app calls the API through the `/bh-api` rewrite in `frontend/next.config.ts`, so it needs no extra CORS. Pushing to `main` redeploys Vercel automatically. Test the link at `https://beyond-horizons-ruddy.vercel.app/bh-api/health`.
 
