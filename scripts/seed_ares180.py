@@ -8,7 +8,7 @@ The actual generation logic lives in backend/app/domain/ares180_seed.py
 (and its serializer, ares180_seed_io.py) so it can be unit-tested with
 pytest without going through this CLI. This script only wires that logic
 to argv and prints a human-readable summary.
-"""
+""" 
 
 from __future__ import annotations
 
