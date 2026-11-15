@@ -4,8 +4,14 @@
 
 An astronaut health-monitoring console and explainable **crew digital twin**, built for the **NASA Space Apps Challenge 2026** challenge *"Create Health Monitoring Software for Astronauts on Space Missions"*. It watches a crew member's vital signs, the habitat environment and long-term spaceflight risks, shows **where in the body** a problem is on a 3D hologram, simulates a whole crew on a Mars mission, and explains every result with its NASA evidence, uncertainty and limitations.
 
-- **Live site (this repository, Vercel):** https://beyond-horizons-ruddy.vercel.app/ — opens on the **3D Health HUD**
-- **HUD on GitHub Pages (this repository):** https://estercpaulino2007.github.io/beyond-horizons/ — published from `frontend/public/hud3d` by `.github/workflows/hud-pages.yml`
+## ▶ Open the app: https://estercpaulino2007.github.io/beyond-horizons/
+
+This is the main link — the full 3D Health HUD, live-connected to the Beyond Horizons API (DATA LINK **ONLINE**) and to Beyond AI.
+
+| Link | What it is |
+|------|------------|
+| **https://estercpaulino2007.github.io/beyond-horizons/** | **Main link.** The 3D Health HUD on GitHub Pages, published from `frontend/public/hud3d` by `.github/workflows/hud-pages.yml` |
+| https://beyond-horizons-ruddy.vercel.app/ | The same HUD inside the Next.js web app (also hosts the earlier pages and the `/bh-api` proxy to the backend) |
 
 > **Disclaimer.** Beyond Horizons is an astronaut health-monitoring and mission-simulation platform (research prototype). Mission readings and crew profiles are synthetic or simulated and are labelled **SIMULATED** / **SYNTHETIC** everywhere in the interface. NASA standards, measurements and datasets set the limits, rates and evidence behind them. It does not provide medical advice, should not be used for real mission planning or health decisions, and does not replace a flight surgeon.
 >
@@ -17,7 +23,7 @@ An astronaut health-monitoring console and explainable **crew digital twin**, bu
 
 | Part | Where | What it does |
 |------|-------|--------------|
-| **3D Health HUD** | `frontend/public/hud3d/` (static three.js page; served at `/hud3d/index.html`, embedded at `/hud`, and the site's home page `/` redirects to it) | The main interface: holographic body scan, live monitoring, scenarios, My Vitals, Genetics, Crew Risk, EVA, Research, Mission, Beyond AI |
+| **3D Health HUD** | `frontend/public/hud3d/` (static three.js page; published to GitHub Pages — the main link — and also served by the Next.js app at `/hud3d/index.html`, where the home page `/` redirects to it) | The main interface: holographic body scan, live monitoring, scenarios, My Vitals, Genetics, Crew Risk, EVA, Research, Mission, Beyond AI |
 | **Web app** | `frontend/` (Next.js + TypeScript + Tailwind) | Hosts the HUD and the earlier pages (`/simulation`, `/vitals`, `/genetics`, `/counterfactual`, `/debate`, `/evidence`, `/research-navigator`); proxies the API through `/bh-api` |
 | **API and simulation engine** | `backend/` (FastAPI + Pydantic) | Deterministic Ares-180 simulation, counterfactual EVA comparison, Debate Chamber, evidence graph, Research Navigator, vitals evaluation, Beyond AI assistant |
 | **Data** | `data/` | Synthetic Ares-180 seed (crew, events, daily exposures) and processed datasets |
@@ -152,9 +158,7 @@ Full provenance notes for every source: [`docs/data-sources.md`](docs/data-sourc
 | Explore 3D views (ISS, lungs, DNA, transit) | Drag and scroll on the view |
 | Open a source | Click any green tag, or **NASA SOURCES** |
 | Customize names | Click MISSION or ASTRONAUT in the header |
-| Direct links | `?mode=scan&s=2&tab=biometrics` |
-
-The **DATA LINK** indicator shows the connection to the Beyond Horizons API: **ONLINE** (live), or **SNAPSHOT** — the tabs then use `data/snapshot.json`, a stored copy of the API's real outputs for the deterministic Ares-180 seed, so everything still works if the backend is asleep. Live-only features (custom crew-simulation parameters, Beyond AI) say so when the link is offline.
+| Direct links | e.g. https://estercpaulino2007.github.io/beyond-horizons/?mode=scan&s=2&tab=biometrics (`mode` = astronaut/scan, `s` = scenario number starting at 0 (0 Nominal, 1 Hypoxia, 2 Arrhythmia, 3 Solar particle event, 4 Heat stress, 5 Bone loss, 6 SANS), `tab` = overview, biometrics, myvitals, genetics, simulations, crew, eva, research, mission) |
 
 The **DATA LINK** indicator shows the connection to the API: **ONLINE** (live), **WAIT** (the server is waking up — the free Render plan sleeps, the first request can take about a minute) or **SNAPSHOT** — the tabs then use `frontend/public/hud3d/data/snapshot.json`, a stored copy of this API's real outputs for the deterministic Ares-180 seed, so everything still works. Live-only features (custom crew / events / mission parameters, Beyond AI) say so on screen when the link is offline.
 
@@ -206,10 +210,10 @@ curl http://localhost:8000/api/v1/evidence/graph
 | Service | Setting | Value |
 |---------|---------|-------|
 | **Vercel** (this repo) | `NEXT_PUBLIC_API_BASE_URL` | Address of the Render backend, no slash at the end |
-| **Render** (backend) | `CORS_ORIGINS` | Comma-separated origins, must include `https://estercpaulino2007.github.io` for the GitHub Pages copy |
+| **Render** (backend) | `CORS_ORIGINS` | `https://beyond-horizons-ruddy.vercel.app,https://estercpaulino2007.github.io` (comma-separated, no spaces, no trailing slash) — required for the GitHub Pages link |
 | **Render** | `ASSISTANT_API_KEY` (and provider settings, see `.env.example`) | Needed only for Beyond AI |
 
-**GitHub Pages:** the workflow `.github/workflows/hud-pages.yml` publishes `frontend/public/hud3d` to https://estercpaulino2007.github.io/beyond-horizons/ on every push that changes the HUD (one-time setup: Settings → Pages → Source: *GitHub Actions*). That copy reaches the API through the Vercel app's `/bh-api` proxy, so Render's `CORS_ORIGINS` must include `https://estercpaulino2007.github.io`.
+**GitHub Pages (main link):** the workflow `.github/workflows/hud-pages.yml` publishes `frontend/public/hud3d` to https://estercpaulino2007.github.io/beyond-horizons/ on every push that changes the HUD (one-time setup: Settings → Pages → Source: *GitHub Actions*). The page reaches the API through the Vercel app's `/bh-api` proxy (see `frontend/public/hud3d/config.js`), so Render's `CORS_ORIGINS` must include `https://estercpaulino2007.github.io`.
 
 The HUD inside this app calls the API through the `/bh-api` rewrite in `frontend/next.config.ts`, so it needs no extra CORS. Pushing to `main` redeploys Vercel automatically. Test the link at `https://beyond-horizons-ruddy.vercel.app/bh-api/health`.
 
