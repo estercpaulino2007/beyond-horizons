@@ -8,18 +8,15 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=18';
-import { chips, initSources } from './sources.js?v=18';
+import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=20';
+import { chips, initSources } from './sources.js?v=20';
 
 /* ============================================================
    CONFIG
    ============================================================ */
 const CONFIG = {
-  mission: 'STS-1187',
+  mission: 'BH-180',
   astronaut: 'J. KELLER',
-  // The NASA insignia ("meatball") is restricted for Space Apps projects.
-  // Keep false for the submission; set true only for private mock-ups.
-  useNasaInsignia: false,
   startElapsed: 124 * 3600 + 32 * 60 + 17,
   startNextCheckpoint: 2 * 3600 + 15 * 60 + 43,
   bloom: true,
@@ -27,7 +24,6 @@ const CONFIG = {
   anat: { scale: 1.62, x: 0, y: 0.09, z: 0.0 },
 };
 const qs = new URLSearchParams(location.search);
-if (qs.has('nasa')) CONFIG.useNasaInsignia = qs.get('nasa') !== '0';
 if (qs.get('bloom') === '0') CONFIG.bloom = false;
 // LITE mode for phones/tablets: smaller textures, no bloom, 1x pixel ratio (keeps mobile browsers from running out of memory)
 const UA = navigator.userAgent || '';
@@ -116,8 +112,10 @@ const BASE_COUNT = SCENARIOS.length;
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } };
 const SET_KEY = 'beyond-horizons:hud-settings', CS_KEY = 'beyond-horizons:custom-scenarios';
-const DEFAULT_SET = { astronaut: 'J. KELLER', mission: 'STS-1187', phase: 'Low Earth Orbit ops', crew: 4, elapsedH: 124.54 };
+const OLD_MISSION = 'STS-1187';
+const DEFAULT_SET = { astronaut: 'J. KELLER', mission: 'BH-180', phase: 'Low Earth Orbit ops', crew: 4, elapsedH: 124.54 };
 let settings = { ...DEFAULT_SET, ...lsGet(SET_KEY, {}) };
+if (settings.mission === OLD_MISSION) settings.mission = DEFAULT_SET.mission;
 let selfScenario = null;
 
 /* ============================================================
@@ -161,8 +159,7 @@ addEventListener('scroll', () => sizeHolo(), { passive: true });
    LOADING
    ============================================================ */
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-const MODEL_LIST = ['astronaut', 'organs', 'vessels', 'heart', 'brain', 'brain-holo', 'dna', 'earth', 'iss', 'lungs', 'mars', 'station'];
-if (CONFIG.useNasaInsignia) MODEL_LIST.push('nasa');
+const MODEL_LIST = ['astronaut', 'organs', 'vessels', 'heart', 'brain', 'dna', 'earth', 'iss', 'lungs', 'mars', 'station'];
 const progress = {};
 const models = {};
 function setLoad() {
@@ -644,16 +641,21 @@ function setupMiniViews() {
     const a = mk(false); addView('dna', a.s, a.cam, a.update);
     if (models.dna) { const b = mk(true); addView('dnabig', b.s, b.cam, b.update); }
   }
-  // AI brain (particle hologram with its own animation)
-  if (models['brain-holo']) {
-    const g = models['brain-holo'];
+  // AI brain hologram: particle cloud built from the CC-BY "Blue Brain" model
+  if (models.brain) {
     const s = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
-    s.add(g.scene);
-    const mixer = new THREE.AnimationMixer(g.scene); g.animations.forEach(a => mixer.clipAction(a).play());
-    let mi = 0; g.scene.traverse(o => { if (o.isMesh && o.material) { const c = new THREE.Color(mi++ % 2 ? 0x45b4ff : 0xc0f0ff); o.material = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false }); } });
-    frameObject(g.scene, cam, 1.45, new THREE.Vector3(1, 0.15, 0.35));
-    let last = 0;
-    addView('aibrain', s, cam, t => { mixer.update(Math.min(0.05, t - last)); last = t; g.scene.rotation.y = Math.sin(t * 0.3) * 0.4; });
+    const piv = new THREE.Group(), pts = [];
+    models.brain.scene.updateMatrixWorld(true);
+    models.brain.scene.traverse(o => { if (o.isMesh && o.geometry?.attributes.position) {
+      const src = o.geometry.attributes.position, n = src.count, step = Math.max(1, Math.floor(n / 6000)), arr = [], v = new THREE.Vector3();
+      for (let k = 0; k < n; k += step) { v.fromBufferAttribute(src, k).applyMatrix4(o.matrixWorld); arr.push(v.x, v.y, v.z); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+      const m = new THREE.PointsMaterial({ color: pts.length % 2 ? 0x2a8cff : 0x5cc8ff, size: 1.5, sizeAttenuation: false, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false });
+      const p = new THREE.Points(g, m); pts.push(p); piv.add(p);
+    } });
+    const bb = new THREE.Box3().setFromObject(piv), c = bb.getCenter(new THREE.Vector3()); pts.forEach(p => p.position.sub(c));
+    s.add(piv); frameObject(piv, cam, 1.3, new THREE.Vector3(1, 0.15, 0.35));
+    addView('aibrain', s, cam, t => { piv.rotation.y = t * 0.35; const k = 0.45 + 0.2 * Math.sin(t * 2.4); pts.forEach(p => { p.material.opacity = k; }); });
   }
   // ISS interior (mission overview + simulations)
   if (models.iss) {
@@ -756,16 +758,6 @@ function setupMiniViews() {
       else ship.position.copy(curve.getPoint(st.frac));
       glow.position.copy(ship.position); glow.scale.setScalar(1 + 0.3 * Math.sin(t * 4));
     });
-  }
-  // optional NASA insignia in the logo slot
-  if (CONFIG.useNasaInsignia && models.nasa) {
-    const slot = document.getElementById('logoSlot');
-    slot.innerHTML = '<div class="mini3d" data-view="logo" style="position:absolute;inset:-6px"></div>';
-    const s = basicLights(new THREE.Scene(), 0xffffff), cam = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
-    const n = models.nasa.scene; const piv = new THREE.Group(); piv.add(n); s.add(piv);
-    const bb = new THREE.Box3().setFromObject(n); n.position.sub(bb.getCenter(new THREE.Vector3()));
-    frameObject(piv, cam, 1.05);
-    addView('logo', s, cam, t => { piv.rotation.y = Math.sin(t * 0.6) * 0.35; });
   }
 }
 // camera path inside the ISS photogrammetry (computed from the model bounds at load)

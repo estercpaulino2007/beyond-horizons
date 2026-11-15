@@ -284,15 +284,37 @@ The HUD alone can also be served without the backend: `cd frontend/public/hud3d 
 - Several datasets come from ground-based or animal studies (labelled as such in the SOURCES panel).
 - See [`docs/limitations.md`](docs/limitations.md) for the full list.
 
-## Recommended Viewing
-For the best experience with the interactive 3D dashboard, use a desktop or laptop browser.
+## Use of AI (Super Intelligence) tools
+
+Declared as required by the NASA Space Apps Challenge rules:
+
+- **Code and documentation:** written with the help of an AI assistant (Claude, by Anthropic) and reviewed, run and tested by the team (backend test suite, browser checks of every HUD tab). This applies to the backend, the Next.js frontend, the 3D Health HUD and the docs.
+- **Images:** the five scenario illustrations in the earlier Next.js pages (`frontend/lib/scenario-images.ts`) are AI-generated concept art and carry a visible on-image label: *"Synthetic illustration — AI-generated concept art, not a real photograph"*. The 3D Health HUD itself uses no AI-generated images (its 3D models are third-party models, see Credits). The presentation slides use screenshots of the app.
+- **Synthetic data:** the Ares-180 crew profiles, events and daily exposures (`data/synthetic/`) were created for this simulation with AI assistance and are labelled SYNTHETIC everywhere.
+- **In-app assistant:** Beyond AI is a large language model (configured on the backend through an OpenAI-compatible API; the model name is shown in the chat header), grounded in the platform's own data.
+- **No NASA branding:** no NASA logo, insignia or mission identifier is used or generated.
 
 ## Credits
-Built by the Beyond Horizons team for the NASA Space Apps Challenge 2026. 
+Built by the Beyond Horizons team for the NASA Space Apps Challenge 2026.
 
-Third-party assets remain subject to their respective licences and
-are not covered by the project's MIT software licence.
+### 3D models (Sketchfab, used under their licences)
+| Model | Author | Licence | Files in `frontend/public/hud3d/models/` |
+|---|---|---|---|
+| [Astronaut](https://sketchfab.com/3d-models/astronaut-287589e324b942b8be57dbd6c539b2ab) | Javi_DaviYT | CC-BY 4.0 | `astronaut.glb` |
+| [Splanchnology](https://sketchfab.com/3d-models/splanchnology-5cfafb312f504815aa3fec55735607a6) | Z-Anatomy | CC-BY-SA 4.0 | `organs.glb` |
+| [Angiology](https://sketchfab.com/3d-models/angiology-0caae8f894cc40b69f3f78adf14b9665) | Z-Anatomy | CC-BY-SA 4.0 | `vessels.glb`, `heart.glb` |
+| [Realistic Human Lungs](https://sketchfab.com/3d-models/realistic-human-lungs-ce09f4099a68467880f46e61eb9a3531) | neshallads | CC-BY 4.0 | `lungs.glb` |
+| [Blue Brain](https://sketchfab.com/3d-models/blue-brain-013fbf81a4aa49eba1be3a817e2b7a83) | nigachad101 | CC-BY 4.0 | `brain.glb` |
+| [DNA Double Helix](https://sketchfab.com/3d-models/dna-double-helix-224d09f75a674f4a8107e79e3d3d5552) | uuon | CC-BY 4.0 | `dna.glb` |
+| [Earth](https://sketchfab.com/3d-models/earth-5f9c35be31a047928eace8b415a8ee3a) | AirStudios | CC-BY 4.0 | `earth.glb` |
+| [MARS the red planet (FREE)](https://sketchfab.com/3d-models/mars-the-red-planet-free-7cf3b31ca60f45cc8e52f7fa863ad09a) | DURVESH123 | CC-BY 4.0 | `mars.glb` |
+| [ISS Photogrammetry Interior](https://sketchfab.com/3d-models/iss-photogrammetry-interior-6a0ff2ea447347b2adcc813e1c9912a7) | VTX | CC-BY-NC-SA 4.0 (non-commercial) | `iss.glb` |
+| [Need some space?](https://sketchfab.com/3d-models/need-some-space-d6521362b37b48e3a82bce4911409303) | Loïc Norgeot | CC-BY 4.0 | `station.glb` |
 
+Changes made: models were compressed (meshopt, WebP textures), smaller copies were made for phones (`models/lite/`), the heart was extracted from Angiology, and the hologram materials are applied in code. The modified CC-BY-SA and CC-BY-NC-SA models remain under their original licences (ShareAlike), not under this repository's MIT licence.
+
+### Libraries and services
+three.js (MIT), FastAPI, Pydantic, Next.js, Tailwind CSS, gltf-transform. Hosting: GitHub Pages, Vercel, Render.
 
 ## License
-MIT — see [LICENSE](LICENSE).
+MIT for the project's own code — see [LICENSE](LICENSE). Third-party 3D models keep their own licences (see Credits).
