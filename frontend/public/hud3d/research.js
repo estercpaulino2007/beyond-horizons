@@ -1,7 +1,7 @@
 // Beyond Horizons HUD — research tabs linked to the Beyond Horizons API (FastAPI backend)
 // Shares localStorage keys with the Next.js app, so history is common when both run on the same domain.
 
-import { chips } from './sources.js?v=32';
+import { chips } from './sources.js?v=33';
 const REF_SRC = { 'OSD-720': 'osd720', 'GLDS-699': 'osd720', 'AINV00000008': 'lsda_osteo', 'NAG9-1024': 'nag9_1024', 'HRP-BEHAVIORAL-HEALTH': 'hrp_behav', 'HRP-RADIATION-CARCINOGENESIS': 'hrp_carcino', 'HRP-BONE-RISK': 'hrp_bone', 'HRP-MUSCLE-RISK': 'hrp_muscle', 'HRP-EVA-RISK': 'hrp_eva', 'HRP-BEH': 'hrp_behav' };
 const refIds = ref => [...new Set(Object.entries(REF_SRC).filter(([k]) => (ref || '').includes(k)).map(([, v]) => v))];
 const KEYS = {
@@ -52,7 +52,7 @@ async function api(path, body) {
 }
 /* ---------- offline snapshot: real outputs of the Beyond Horizons API, used when the live link is unavailable ---------- */
 let snapP = null;
-const getSnap = () => (snapP ||= fetch('data/snapshot.json?v=32').then(r => { if (!r.ok) throw new Error('snapshot missing'); return r.json(); }));
+const getSnap = () => (snapP ||= fetch('data/snapshot.json?v=33').then(r => { if (!r.ok) throw new Error('snapshot missing'); return r.json(); }));
 const SNAP_NOTE = '<div class="snap-note">OFFLINE SNAPSHOT · real outputs of the Beyond Horizons API (deterministic Ares-180 seed), shown because the live data link is unavailable.</div>';
 async function apiOr(path, body, pick) {
   try { return { data: await api(path, body), snap: false }; }

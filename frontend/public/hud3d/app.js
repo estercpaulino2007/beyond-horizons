@@ -8,8 +8,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=32';
-import { chips, initSources } from './sources.js?v=32';
+import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=33';
+import { chips, initSources } from './sources.js?v=33';
 
 /* ============================================================
    CONFIG
@@ -498,7 +498,7 @@ function updateModeVisuals(dt) {
   }
   holo.scanPlane.position.y = scanY.value;
   holo.scanPlane.material.opacity = (state.mode === 'scan' && scanY.value > -1) ? 0.05 : 0;
-  if (holo.bloom) { holo.bloom.strength = THREE.MathUtils.lerp(0.32, 0.55, k); holo.bloom.threshold = THREE.MathUtils.lerp(0.92, 0.6, k); holo.bloom.radius = 0.5; }
+  if (holo.bloom) { holo.bloom.strength = THREE.MathUtils.lerp(0.26, 0.42, k); holo.bloom.threshold = THREE.MathUtils.lerp(0.92, 0.6, k); holo.bloom.radius = 0.5; }
   updateScanList();
 }
 
@@ -977,27 +977,27 @@ const GENE_INFO = {
   telomere: { name: 'Telomere length', short: 'Chromosome-end length; shifted in long-duration flight', src: ['twins'],
     what: 'Telomeres are protective caps at the ends of chromosomes; they shorten with age and cellular stress.',
     nasa: 'In the NASA Twins Study, telomeres lengthened during the year in space and shortened rapidly after return; more short telomeres persisted afterwards.',
-    act: 'Track over the mission; combine with radiation dose and oxidative-stress markers.' },
+    act: 'Track over the mission; combine with radiation dose and oxidative-stress markers.', crit: 'High dose plus a long stay: reduce further dose and take a follow-up sample as soon as possible; report to the flight surgeon.' },
   dna: { name: 'DNA damage response', short: 'Double-strand break repair activity', src: ['twins', 'osd720', 'nag9_1024'],
     what: 'Space radiation can break both DNA strands; cells switch on repair genes when this happens.',
     nasa: 'The Twins Study recorded DNA damage and genome instability in flight. NASA-funded radiation studies (OSD-720, NAG9-1024) show lasting gene-expression changes after simulated space radiation.',
-    act: 'Limit further dose (storm shelter), log cumulative dose, repeat the marker after the event.' },
+    act: 'Limit further dose (storm shelter), log cumulative dose, repeat the marker after the event.', crit: 'Go to the storm shelter, postpone non-essential spacewalks, log the event dose and repeat the marker after the event; report to the flight surgeon.' },
   expr: { name: 'Gene expression drift', short: 'Stability vs. pre-flight baseline', src: ['twins'],
     what: 'How far the overall pattern of active genes has moved from the crew member\'s own pre-flight baseline.',
     nasa: 'In the Twins Study gene expression changed far more in the second half of the year-long mission; most changes returned toward baseline within about 6 months after landing, but some persisted.',
-    act: 'Compare with the baseline sample; correlate with sleep, workload and dose.' },
+    act: 'Compare with the baseline sample; correlate with sleep, workload and dose.', crit: 'Large drift from baseline: report to the flight surgeon and compare with the pre-flight sample at the next collection.' },
   immune: { name: 'Immune gene activity', short: 'Inflammation-related expression', src: ['twins'],
     what: 'Expression of genes that drive inflammation and immune responses.',
     nasa: 'The Twins Study found immune-related changes in flight, and some T-cell activation changes were still present after return.',
-    act: 'Watch for infection signs; review heat load, sleep and stress.' },
+    act: 'Watch for infection signs; review heat load, sleep and stress.', crit: 'Check for infection signs now, reduce heat, radiation and stress load, and report to the flight surgeon.' },
   oxid: { name: 'Oxidative stress', short: 'Oxidative damage markers', src: ['twins'],
     what: 'Damage from reactive oxygen molecules produced under radiation, low oxygen or heavy workload.',
     nasa: 'The Twins Study reported DNA methylation changes in oxidative-stress-related pathways during spaceflight.',
-    act: 'Reduce the trigger (radiation, hypoxia); track with the DNA-damage marker.' },
+    act: 'Reduce the trigger (radiation, hypoxia); track with the DNA-damage marker.', crit: 'Remove the trigger first (radiation shelter or oxygen supply) and report to the flight surgeon; track together with the DNA-damage marker.' },
   mito: { name: 'Mitochondrial function', short: 'Cellular energy pathways', src: ['twins'],
     what: 'Genes of the mitochondria, the part of the cell that produces energy.',
     nasa: 'The Twins Study observed changes in mitochondrial gene activity during long-duration flight.',
-    act: 'Relevant under low oxygen; correlate with SpO₂ and fatigue.' },
+    act: 'Relevant under low oxygen; correlate with SpO₂ and fatigue.', crit: 'Check SpO₂ and cabin O₂ now; rest and report to the flight surgeon.' },
 };
 function geneStatus() {
   const sc = scen(), id = sc.id, radC = sc.e && sc.e.rad !== undefined ? classify(sc.e.rad, ENV_RANGES.rad) : 'ok';
@@ -1199,6 +1199,7 @@ function renderGenOverview() {
   const mut = st.dna === 'crit' ? ['High', 88, 'crit'] : st.dna === 'warn' ? ['Elevated', 60, 'warn'] : [sc.gen.mut[0], sc.gen.mut[1], sc.gen.mut[1] > 50 ? 'warn' : ''];
   $('#gMut').textContent = mut[0]; const mb = $('#gMutBar'); mb.style.width = mut[1] + '%'; mb.className = mut[2];
   const g = gsim.summary;
+  const gl = $('#genSimLine'); if (gl && !gl.onclick) { gl.style.cursor = 'pointer'; gl.title = 'Open GENETICS'; gl.onclick = () => goTab('genetics'); }
   if (g) $('#genSimLine').innerHTML = `<span>GENE SIMULATOR</span> ${esc(g.label)} · ${g.days} d · <b class="${g.careerPct >= 100 ? 'crit' : g.careerPct >= 70 ? 'warn' : 'ok'}">${Math.round(g.dose)} mSv · ${Math.round(g.careerPct)}% of NASA career limit</b>${nW + nC ? ` · <b class="${nC ? 'crit' : 'warn'}">${nW + nC} marker${nW + nC > 1 ? 's' : ''} flagged</b>` : ''}`;
 }
 function gsHow() {
@@ -1244,10 +1245,12 @@ function renderGeneList() {
   const flagged = Object.entries(st).filter(([, s]) => s !== 'ok'), level = worst(...Object.values(st));
   setDnaStatus(level, flagged.length + (level === 'crit' ? 2 : 0));
   $('#genStatus').innerHTML = flagged.length ? `<b class="${level}">${flagged.length} MARKER${flagged.length > 1 ? 'S' : ''} ${level === 'crit' ? 'IN ALERT' : 'ON WATCH'}</b><span>highlighted on the DNA model · click a marker for details</span>` : '<b class="ok">GENOME STABLE</b><span>no marker outside the baseline band</span>';
-  const k = geneSel || (flagged[0] && flagged[0][0]);
-  if (!k) { $('#geneDetail').innerHTML = ''; return; }
-  const g = GENE_INFO[k], s = st[k];
-  $('#geneDetail').innerHTML = `<h4>${g.name} · <span class="${s}">${lbl(s)}</span></h4><p><b>What it is:</b> ${g.what}</p><p><b>What NASA found:</b> ${g.nasa}</p><p><b>${s === 'ok' ? 'Monitoring' : 'Suggested action'}:</b> ${g.act}</p><div>${chips(g.src)}</div>`;
+  const top = flagged.find(([, v]) => v === 'crit') || flagged[0];
+  const k = geneSel || (top && top[0]) || 'dna';
+  const g = GENE_INFO[k], s = st[k], gs = gsim.summary;
+  const why = s === 'ok' ? `Within the baseline band${gs ? ` (${Math.round(gs.dose)} mSv this mission, ${gs.days} days)` : ''}. Click any marker on the left to learn about it.`
+    : gs ? `${Math.round(gs.dose)} mSv this mission · ${gs.days} days in space${gs.spe ? ' · solar event' : ''}${s === 'crit' ? ' — above the alert threshold' : ' — above the watch threshold'}.` : '';
+  $('#geneDetail').innerHTML = `<h4>${g.name} · <span class="${s}">${lbl(s)}</span></h4><p><b>${s === 'ok' ? 'Status' : 'Why it is flagged'}:</b> ${why}</p><p><b>What it is:</b> ${g.what}</p><p><b>What NASA found:</b> ${g.nasa}</p><p><b>${s === 'ok' ? 'Monitoring' : s === 'crit' ? 'Action now (ALERT)' : 'Suggested action (WATCH)'}:</b> ${s === 'crit' ? g.crit || g.act : g.act}</p><div>${chips(g.src)}</div>`;
 }
 function buildScenarioUI() {
   const sel = $('#scenarioSel');
