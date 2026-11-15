@@ -8,8 +8,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=22';
-import { chips, initSources } from './sources.js?v=22';
+import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=30';
+import { chips, initSources } from './sources.js?v=30';
 
 /* ============================================================
    CONFIG
@@ -17,6 +17,9 @@ import { chips, initSources } from './sources.js?v=22';
 const CONFIG = {
   mission: 'BH-180',
   astronaut: 'J. KELLER',
+  // The NASA insignia ("meatball") is restricted for Space Apps projects.
+  // Keep false for the submission; set true only for private mock-ups.
+  useNasaInsignia: false,
   startElapsed: 124 * 3600 + 32 * 60 + 17,
   startNextCheckpoint: 2 * 3600 + 15 * 60 + 43,
   bloom: true,
@@ -24,14 +27,8 @@ const CONFIG = {
   anat: { scale: 1.62, x: 0, y: 0.09, z: 0.0 },
 };
 const qs = new URLSearchParams(location.search);
+if (qs.has('nasa')) CONFIG.useNasaInsignia = qs.get('nasa') !== '0';
 if (qs.get('bloom') === '0') CONFIG.bloom = false;
-// LITE mode for phones/tablets: smaller textures, no bloom, 1x pixel ratio (keeps mobile browsers from running out of memory)
-const UA = navigator.userAgent || '';
-CONFIG.lite = qs.has('lite') ? qs.get('lite') !== '0'
-  : /iPhone|iPad|iPod|Android|Mobile/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
-if (CONFIG.lite) CONFIG.bloom = false;
-const DPR = () => CONFIG.lite ? 1 : Math.min(devicePixelRatio, 1.5);
-const LITE_MODELS = new Set(['iss', 'astronaut', 'lungs', 'earth']);
 
 /* ============================================================
    REFERENCE RANGES + SCENARIOS (simulated)
@@ -138,9 +135,7 @@ let uiZoom = (() => { try { return +localStorage.getItem('beyond-horizons:ui-zoo
 function layout() {
   const fit = Math.min(innerWidth / 1920, innerHeight / 1080);
   S = fit * uiZoom;
-  const portrait = innerHeight > innerWidth * 1.15 && innerWidth < 900;
-  document.documentElement.classList.toggle('portrait-phone', portrait);
-  const W = 1920 * S, H = 1080 * S, ox = Math.max(0, (innerWidth - W) / 2), oy = portrait ? 70 : Math.max(0, (innerHeight - H) / 2);
+  const W = 1920 * S, H = 1080 * S, ox = Math.max(0, (innerWidth - W) / 2), oy = Math.max(0, (innerHeight - H) / 2);
   app.style.transform = `translate(${ox}px,${oy}px) scale(${S})`;
   const st = document.getElementById('stage');
   st.style.width = Math.max(innerWidth, W) + 'px'; st.style.height = Math.max(innerHeight, H) + 'px';
@@ -160,19 +155,19 @@ addEventListener('scroll', () => sizeHolo(), { passive: true });
    ============================================================ */
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const MODEL_LIST = ['astronaut', 'organs', 'vessels', 'heart', 'brain', 'brain-holo', 'dna', 'earth', 'iss', 'lungs', 'mars', 'station'];
+if (CONFIG.useNasaInsignia) MODEL_LIST.push('nasa');
 const progress = {};
 const models = {};
 function setLoad() {
-  // servers that gzip the files report a compressed total, so loaded can exceed total: clamp each model to 0–1
-  const vals = MODEL_LIST.map(n => Math.min(1, Math.max(0, progress[n] || 0)));
-  const p = Math.min(1, vals.reduce((a, b) => a + b, 0) / MODEL_LIST.length);
+  const vals = MODEL_LIST.map(n => progress[n] || 0);
+  const p = vals.reduce((a, b) => a + b, 0) / MODEL_LIST.length;
   document.getElementById('ldBar').style.width = (p * 100).toFixed(0) + '%';
   document.getElementById('ldPct').textContent = (p * 100).toFixed(0) + '%';
 }
 function load(name) {
   return new Promise((res) => {
-    loader.load(`models/${CONFIG.lite && LITE_MODELS.has(name) ? 'lite/' : ''}${name}.glb`, g => { progress[name] = 1; setLoad(); models[name] = g; res(g); },
-      x => { if (x.total) { progress[name] = Math.min(0.95, x.loaded / x.total * 0.95); setLoad(); } },
+    loader.load(`models/${name}.glb`, g => { progress[name] = 1; setLoad(); models[name] = g; res(g); },
+      x => { if (x.total) { progress[name] = x.loaded / x.total * 0.95; setLoad(); } },
       err => { console.warn('model failed', name, err); progress[name] = 1; setLoad(); res(null); });
   });
 }
@@ -227,8 +222,8 @@ function makeHolo(o = {}) {
 const holoCanvas = document.getElementById('holoCanvas');
 const holo = {};
 function initHolo() {
-  const r = new THREE.WebGLRenderer({ canvas: holoCanvas, antialias: !CONFIG.lite, powerPreference: CONFIG.lite ? 'default' : 'high-performance' });
-  r.setPixelRatio(DPR());
+  const r = new THREE.WebGLRenderer({ canvas: holoCanvas, antialias: true, powerPreference: 'high-performance' });
+  r.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   r.setClearColor(0x03112b, 1);
   r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
   const scene = new THREE.Scene();
@@ -566,8 +561,8 @@ function updateMarkers() {
 const miniCanvas = document.getElementById('miniCanvas');
 const mini = { views: [] };
 function initMini() {
-  const r = new THREE.WebGLRenderer({ canvas: miniCanvas, antialias: !CONFIG.lite, alpha: true });
-  r.setPixelRatio(DPR()); r.setClearColor(0, 0); r.autoClear = false;
+  const r = new THREE.WebGLRenderer({ canvas: miniCanvas, antialias: true, alpha: true });
+  r.setPixelRatio(Math.min(devicePixelRatio, 1.5)); r.setClearColor(0, 0); r.autoClear = false;
   r.toneMapping = THREE.ACESFilmicToneMapping;
   mini.r = r;
 }
@@ -753,6 +748,16 @@ function setupMiniViews() {
       else ship.position.copy(curve.getPoint(st.frac));
       glow.position.copy(ship.position); glow.scale.setScalar(1 + 0.3 * Math.sin(t * 4));
     });
+  }
+  // optional NASA insignia in the logo slot
+  if (CONFIG.useNasaInsignia && models.nasa) {
+    const slot = document.getElementById('logoSlot');
+    slot.innerHTML = '<div class="mini3d" data-view="logo" style="position:absolute;inset:-6px"></div>';
+    const s = basicLights(new THREE.Scene(), 0xffffff), cam = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
+    const n = models.nasa.scene; const piv = new THREE.Group(); piv.add(n); s.add(piv);
+    const bb = new THREE.Box3().setFromObject(n); n.position.sub(bb.getCenter(new THREE.Vector3()));
+    frameObject(piv, cam, 1.05);
+    addView('logo', s, cam, t => { piv.rotation.y = Math.sin(t * 0.6) * 0.35; });
   }
 }
 // camera path inside the ISS photogrammetry (computed from the model bounds at load)

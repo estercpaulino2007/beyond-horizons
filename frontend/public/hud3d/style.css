@@ -29,7 +29,7 @@ body::before{ /* subtle tech grid */
 #holoCanvas{position:fixed;z-index:1;display:block}
 #miniCanvas{position:fixed;inset:0;width:100vw;height:100vh;z-index:4;pointer-events:none}
 #markers{position:fixed;inset:0;z-index:5;pointer-events:none}
-#stage{position:absolute;left:0;top:0;width:100vw;height:100vh;z-index:2;pointer-events:none;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:100vw;height:100vh;z-index:2;pointer-events:none}
 #app{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
 #app *{pointer-events:auto}
 #app .holo-zone{pointer-events:none}
@@ -628,7 +628,3 @@ html.zoomed,html.zoomed body{overflow:auto}
 .ced.me{box-shadow:0 0 0 1px #2dff8a inset}.ced-name:disabled{opacity:.85;border-color:#2dff8a}
 .crew.me{box-shadow:0 0 0 1px rgba(45,255,138,.6) inset}
 .you-tag{font-size:11px;letter-spacing:1px;border:1px solid #2dff8a;color:#2dff8a;padding:1px 6px;border-radius:3px;vertical-align:middle}
-
-/* phones in portrait: hint to rotate */
-#rotateHint{display:none;position:fixed;left:8px;right:8px;top:10px;z-index:50;padding:10px 12px;border:1px solid rgba(70,175,255,.5);border-radius:8px;background:rgba(4,20,46,.92);color:#cfe9ff;font:600 15px Rajdhani,sans-serif;text-align:center;letter-spacing:.5px}
-.portrait-phone #rotateHint{display:block}
