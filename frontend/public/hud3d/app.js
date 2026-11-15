@@ -8,8 +8,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=16';
-import { chips, initSources } from './sources.js?v=16';
+import { initResearch, onTab, logScan, getGenesData, getMissionData } from './research.js?v=18';
+import { chips, initSources } from './sources.js?v=18';
 
 /* ============================================================
    CONFIG
@@ -29,6 +29,13 @@ const CONFIG = {
 const qs = new URLSearchParams(location.search);
 if (qs.has('nasa')) CONFIG.useNasaInsignia = qs.get('nasa') !== '0';
 if (qs.get('bloom') === '0') CONFIG.bloom = false;
+// LITE mode for phones/tablets: smaller textures, no bloom, 1x pixel ratio (keeps mobile browsers from running out of memory)
+const UA = navigator.userAgent || '';
+CONFIG.lite = qs.has('lite') ? qs.get('lite') !== '0'
+  : /iPhone|iPad|iPod|Android|Mobile/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
+if (CONFIG.lite) CONFIG.bloom = false;
+const DPR = () => CONFIG.lite ? 1 : Math.min(devicePixelRatio, 1.5);
+const LITE_MODELS = new Set(['iss', 'astronaut', 'lungs', 'earth']);
 
 /* ============================================================
    REFERENCE RANGES + SCENARIOS (simulated)
@@ -133,7 +140,9 @@ let uiZoom = (() => { try { return +localStorage.getItem('beyond-horizons:ui-zoo
 function layout() {
   const fit = Math.min(innerWidth / 1920, innerHeight / 1080);
   S = fit * uiZoom;
-  const W = 1920 * S, H = 1080 * S, ox = Math.max(0, (innerWidth - W) / 2), oy = Math.max(0, (innerHeight - H) / 2);
+  const portrait = innerHeight > innerWidth * 1.15 && innerWidth < 900;
+  document.documentElement.classList.toggle('portrait-phone', portrait);
+  const W = 1920 * S, H = 1080 * S, ox = Math.max(0, (innerWidth - W) / 2), oy = portrait ? 70 : Math.max(0, (innerHeight - H) / 2);
   app.style.transform = `translate(${ox}px,${oy}px) scale(${S})`;
   const st = document.getElementById('stage');
   st.style.width = Math.max(innerWidth, W) + 'px'; st.style.height = Math.max(innerHeight, H) + 'px';
@@ -157,15 +166,16 @@ if (CONFIG.useNasaInsignia) MODEL_LIST.push('nasa');
 const progress = {};
 const models = {};
 function setLoad() {
-  const vals = MODEL_LIST.map(n => progress[n] || 0);
-  const p = vals.reduce((a, b) => a + b, 0) / MODEL_LIST.length;
+  // servers that gzip the files report a compressed total, so loaded can exceed total: clamp each model to 0–1
+  const vals = MODEL_LIST.map(n => Math.min(1, Math.max(0, progress[n] || 0)));
+  const p = Math.min(1, vals.reduce((a, b) => a + b, 0) / MODEL_LIST.length);
   document.getElementById('ldBar').style.width = (p * 100).toFixed(0) + '%';
   document.getElementById('ldPct').textContent = (p * 100).toFixed(0) + '%';
 }
 function load(name) {
   return new Promise((res) => {
-    loader.load(`models/${name}.glb`, g => { progress[name] = 1; setLoad(); models[name] = g; res(g); },
-      x => { if (x.total) { progress[name] = x.loaded / x.total * 0.95; setLoad(); } },
+    loader.load(`models/${CONFIG.lite && LITE_MODELS.has(name) ? 'lite/' : ''}${name}.glb`, g => { progress[name] = 1; setLoad(); models[name] = g; res(g); },
+      x => { if (x.total) { progress[name] = Math.min(0.95, x.loaded / x.total * 0.95); setLoad(); } },
       err => { console.warn('model failed', name, err); progress[name] = 1; setLoad(); res(null); });
   });
 }
@@ -220,8 +230,8 @@ function makeHolo(o = {}) {
 const holoCanvas = document.getElementById('holoCanvas');
 const holo = {};
 function initHolo() {
-  const r = new THREE.WebGLRenderer({ canvas: holoCanvas, antialias: true, powerPreference: 'high-performance' });
-  r.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  const r = new THREE.WebGLRenderer({ canvas: holoCanvas, antialias: !CONFIG.lite, powerPreference: CONFIG.lite ? 'default' : 'high-performance' });
+  r.setPixelRatio(DPR());
   r.setClearColor(0x03112b, 1);
   r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
   const scene = new THREE.Scene();
@@ -559,8 +569,8 @@ function updateMarkers() {
 const miniCanvas = document.getElementById('miniCanvas');
 const mini = { views: [] };
 function initMini() {
-  const r = new THREE.WebGLRenderer({ canvas: miniCanvas, antialias: true, alpha: true });
-  r.setPixelRatio(Math.min(devicePixelRatio, 1.5)); r.setClearColor(0, 0); r.autoClear = false;
+  const r = new THREE.WebGLRenderer({ canvas: miniCanvas, antialias: !CONFIG.lite, alpha: true });
+  r.setPixelRatio(DPR()); r.setClearColor(0, 0); r.autoClear = false;
   r.toneMapping = THREE.ACESFilmicToneMapping;
   mini.r = r;
 }
