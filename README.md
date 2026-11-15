@@ -288,54 +288,7 @@ The HUD alone can also be served without the backend: `cd frontend/public/hud3d 
 For the best experience with the interactive 3D dashboard, use a desktop or laptop browser.
 
 ## Credits
-Built by the Beyond Horizons team for the NASA Space Apps Challenge 2026. 3D models (astronaut, anatomy, heart, brain, DNA, Earth, Mars, ISS interior photogrammetry, starfield) are used under their respective licences 
-### 3D Assets and Credits
-
-The following third-party 3D assets were incorporated into Beyond Horizons:
-
-- “ISS Photogrammetry Interior” by VTX (@VTX_car).
-  Licence: Creative Commons Attribution-NonCommercial-ShareAlike (CC BY-NC-SA).
-  https://sketchfab.com/3d-models/iss-photogrammetry-interior-6a0ff2ea447347b2adcc813e1c9912a7
-
-- “Splanchnology” by Z-Anatomy, based on BodyParts3D as described on the source page.
-  Licence: Creative Commons Attribution-ShareAlike (CC BY-SA).
-  https://sketchfab.com/3d-models/splanchnology-5cfafb312f504815aa3fec55735607a6
-
-- “Neural Networks of the Brain” by Universal Design for Learning (@UDL).
-  Licence: Creative Commons Attribution (CC BY).
-  Source: https://sketchfab.com/3d-models/neural-networks-of-the-brain-fa48173d4532407c9c2a4ba06a9bcd2d
-
-- “Brain hologram” by oxterium.
-  Licence: Free Standard.
-  Source: https://sketchfab.com/3d-models/brain-hologram-09d686a1a1f745cba6b2385d0c831214
-
-- “Animated Floating Astronaut in Space Suit Loop” by LasquetiSpice.
-  Licence: Creative Commons Attribution (CC BY).
-  Source: https://sketchfab.com/3d-models/animated-floating-astronaut-in-space-suit-loop-e2c4b146e58141e4b87917456a9970b1
-  Modifications: Optimized for web display and adapted with holographic visual effects in Beyond Horizons.
- 
-  - “DNA Double Helix” by UUON Foundation (@uuon_foundation).
-  Licence: Creative Commons Attribution (CC BY).
-  Source: https://sketchfab.com/3d-models/dna-double-helix-224d09f75a674f4a8107e79e3d3d5552
-  
-  - “Realistic Human Lungs” by neshallads.
-  Licence: Creative Commons Attribution (CC BY).
-  Source: https://sketchfab.com/3d-models/realistic-human-lungs-ce09f4099a68467880f46e61eb9a3531
-
-- “Earth” by Patrick Matthew (@patrickmatthew).
-  Licence: Creative Commons Attribution (CC BY).
-  Source: https://sketchfab.com/3d-models/earth-3827e559d4f34387b6757b63678c069b
-
-- “Earth” by AirStudios (@airstudios3d).
-  Licence: Creative Commons Attribution (CC BY).
-  Source: https://sketchfab.com/3d-models/earth-5f9c35be31a047928eace8b415a8ee3a
-
-- “Mars” by JanesBT.
-  Licence: Creative Commons Attribution (CC BY).
-  Source: https://sketchfab.com/3d-models/mars-6f9ebc64e6c74068a8412a7dd74dfb96
-
-Please refer to each source page for the applicable licence version,
-full terms and original attribution notices.
+Built by the Beyond Horizons team for the NASA Space Apps Challenge 2026. 
 
 Third-party assets remain subject to their respective licences and
 are not covered by the project's MIT software licence.
