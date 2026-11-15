@@ -297,23 +297,6 @@ Declared as required by the NASA Space Apps Challenge rules:
 ## Credits
 Built by the Beyond Horizons team for the NASA Space Apps Challenge 2026.
 
-### 3D models (Sketchfab, used under their licences)
-| Model | Author | Licence | Files in `frontend/public/hud3d/models/` |
-|---|---|---|---|
-| [Astronaut](https://sketchfab.com/3d-models/astronaut-287589e324b942b8be57dbd6c539b2ab) | Javi_DaviYT | CC-BY 4.0 | `astronaut.glb` |
-| [Splanchnology](https://sketchfab.com/3d-models/splanchnology-5cfafb312f504815aa3fec55735607a6) | Z-Anatomy | CC-BY-SA 4.0 | `organs.glb` |
-| [Angiology](https://sketchfab.com/3d-models/angiology-0caae8f894cc40b69f3f78adf14b9665) | Z-Anatomy | CC-BY-SA 4.0 | `vessels.glb`, `heart.glb` |
-| [Realistic Human Lungs](https://sketchfab.com/3d-models/realistic-human-lungs-ce09f4099a68467880f46e61eb9a3531) | neshallads | CC-BY 4.0 | `lungs.glb` |
-| [Blue Brain](https://sketchfab.com/3d-models/blue-brain-013fbf81a4aa49eba1be3a817e2b7a83) | nigachad101 | CC-BY 4.0 | `brain.glb` |
-| [Brain hologram](https://sketchfab.com/3d-models/brain-hologram-09d686a1a1f745cba6b2385d0c831214) | oxterium | Sketchfab Standard | `brain-holo.glb` |
-| [DNA Double Helix](https://sketchfab.com/3d-models/dna-double-helix-224d09f75a674f4a8107e79e3d3d5552) | uuon | CC-BY 4.0 | `dna.glb` |
-| [Earth](https://sketchfab.com/3d-models/earth-5f9c35be31a047928eace8b415a8ee3a) | AirStudios | CC-BY 4.0 | `earth.glb` |
-| [MARS the red planet (FREE)](https://sketchfab.com/3d-models/mars-the-red-planet-free-7cf3b31ca60f45cc8e52f7fa863ad09a) | DURVESH123 | CC-BY 4.0 | `mars.glb` |
-| [ISS Photogrammetry Interior](https://sketchfab.com/3d-models/iss-photogrammetry-interior-6a0ff2ea447347b2adcc813e1c9912a7) | VTX | CC-BY-NC-SA 4.0 (non-commercial) | `iss.glb` |
-| [Need some space?](https://sketchfab.com/3d-models/need-some-space-d6521362b37b48e3a82bce4911409303) | Loïc Norgeot | CC-BY 4.0 | `station.glb` |
-
-Changes made: models were compressed (meshopt, WebP textures), smaller copies were made for phones (`models/lite/`), the heart was extracted from Angiology, and the hologram materials are applied in code. The modified CC-BY-SA and CC-BY-NC-SA models remain under their original licences (ShareAlike), not under this repository's MIT licence.
-
 ### Libraries and services
 three.js (MIT), FastAPI, Pydantic, Next.js, Tailwind CSS, gltf-transform. Hosting: GitHub Pages, Vercel, Render.
 
